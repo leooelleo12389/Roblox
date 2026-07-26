@@ -13,6 +13,8 @@ local camera = workspace.CurrentCamera
 -- ตัวแปรควบคุมการขยับแขนขวาในมุมมองบุคคลที่หนึ่ง
 local rightShoulder = nil
 local originalShoulderC0 = nil
+local rightElbow = nil
+local originalElbowC0 = nil
 local armSwingOffset = CFrame.new()
 
 local WeaponConfig = require(ReplicatedStorage:WaitForChild("Configs"):WaitForChild("WeaponConfig"))
@@ -75,6 +77,19 @@ local function setShoulderC0(cframe)
 	if not success then
 		pcall(function()
 			rightShoulder.Attachment0.CFrame = cframe
+		end)
+	end
+end
+
+-- ฟังก์ชันสำหรับเซ็ตค่า C0 ของข้อศอกขวาอย่างปลอดภัย
+local function setElbowC0(cframe)
+	if not rightElbow then return end
+	local success, _ = pcall(function()
+		rightElbow.C0 = cframe
+	end)
+	if not success then
+		pcall(function()
+			rightElbow.Attachment0.CFrame = cframe
 		end)
 	end
 end
@@ -428,6 +443,19 @@ local function setupCharacterEvents(char)
 		end
 	end
 
+	-- ดึงข้อต่อข้อศอกขวาเมื่อตัวละครโหลด (กรณี R15)
+	rightElbow = char:WaitForChild("RightLowerArm", 5) and char.RightLowerArm:FindFirstChild("RightElbow")
+	if rightElbow then
+		local success, val = pcall(function() return rightElbow.C0 end)
+		if success then
+			originalElbowC0 = val
+		else
+			pcall(function()
+				originalElbowC0 = rightElbow.Attachment0.CFrame
+			end)
+		end
+	end
+
 	-- ตรวจสอบเมื่อมีการหยิบอาวุธขึ้นมาถือ (ChildAdded to Character)
 	char.ChildAdded:Connect(function(child)
 		if child:IsA("Tool") then
@@ -475,10 +503,13 @@ local function setupCharacterEvents(char)
 			currentWeaponData = nil
 			isReloading = false
 			
-			-- คืนค่า C0 หัวไหล่กลับสู่สภาพเริ่มต้น และล้างค่าคอมโบ
+			-- คืนค่า C0 หัวไหล่และข้อศอกกลับสู่สภาพเริ่มต้น และล้างค่าคอมโบ
 			armSwingOffset = CFrame.new()
 			if rightShoulder and originalShoulderC0 then
 				setShoulderC0(originalShoulderC0)
+			end
+			if rightElbow and originalElbowC0 then
+				setElbowC0(originalElbowC0)
 			end
 			currentComboIndex = 1
 			lastComboTime = 0
@@ -524,6 +555,13 @@ function WeaponController.Init()
 	-- เชื่อมเหตุการณ์ RenderStepped เพื่อควบคุมการก้มเงยและแกว่งของข้อไหล่ขวาตามมุมกล้องและคอมโบ
 	RunService.RenderStepped:Connect(function()
 		if not currentTool or not rightShoulder or not originalShoulderC0 then
+			-- คืนค่าข้อต่อเมื่อเก็บไอเทมเพื่อไม่ให้ท่าเดินค้างเบี้ยว
+			if rightShoulder and originalShoulderC0 then
+				setShoulderC0(originalShoulderC0)
+			end
+			if rightElbow and originalElbowC0 then
+				setElbowC0(originalElbowC0)
+			end
 			return
 		end
 		
@@ -537,6 +575,18 @@ function WeaponController.Init()
 				else
 					pcall(function()
 						originalShoulderC0 = rightShoulder.Attachment0.CFrame
+					end)
+				end
+			end
+			
+			rightElbow = player.Character and player.Character:FindFirstChild("RightLowerArm", true) and player.Character.RightLowerArm:FindFirstChild("RightElbow")
+			if rightElbow then
+				local success, val = pcall(function() return rightElbow.C0 end)
+				if success then
+					originalElbowC0 = val
+				else
+					pcall(function()
+						originalElbowC0 = rightElbow.Attachment0.CFrame
 					end)
 				end
 			end
@@ -555,11 +605,24 @@ function WeaponController.Init()
 			0
 		)
 		
-		-- หมุนข้อต่อไหล่ขวาให้ก้มเงยตามกล้อง + คอยบวกหายใจเบาๆ + บวก CFrame อนิเมชั่นแกว่ง/เตะถอยของคอมโบ (armSwingOffset)
-		setShoulderC0(originalShoulderC0 
-			* CFrame.Angles(pitch, 0, 0) 
-			* breathingSway
-			* armSwingOffset)
+		-- จัดท่าทางแขนขวาให้ยกขึ้นโชว์บนหน้าจอแบบ Viewmodel (First Person)
+		if rightElbow and originalElbowC0 then
+			-- งอข้อศอกให้ชูชิ้นส่วนปลายแขนและมือขึ้นมาหน้ากล้อง (Elbow bend forward)
+			setElbowC0(originalElbowC0 * CFrame.Angles(math.rad(-75), 0, 0))
+			
+			-- ปรับพิกัดไหล่ให้เอียงกระดูกยกแขนเข้ามาอยู่โซนด้านหน้ากล้อง
+			setShoulderC0(originalShoulderC0 
+				* CFrame.new(-0.25, -0.15, -0.4) -- เลื่อนไหล่เข้าหากึ่งกลางและยื่นไปหน้า
+				* CFrame.Angles(pitch + math.rad(35), math.rad(-25), math.rad(-15)) -- บิดไหล่ขวาเฉียงขึ้นมาจับ
+				* breathingSway
+				* armSwingOffset)
+		else
+			-- สำหรับ R6 หรือกรณีไม่มีข้อศอก: ใช้การหมุนก้มเงยปกติ
+			setShoulderC0(originalShoulderC0 
+				* CFrame.Angles(pitch, 0, 0) 
+				* breathingSway
+				* armSwingOffset)
+		end
 	end)
 end
 
