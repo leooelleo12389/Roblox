@@ -83,36 +83,141 @@ local function giveDefaultWeapons(player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
 	if not backpack then return end
 	
-	-- 🗡️ 1. สร้างมีดจำลองแบบ Procedural
+	-- 🗡️ 1. สร้างมีดจำลองแบบ Procedural (รุ่นมีใบมีด, กระบังมือ และด้ามไม้)
 	if not backpack:FindFirstChild("Knife") then
 		local knife = Instance.new("Tool")
 		knife.Name = "Knife"
-		knife.Grip = CFrame.new(0, -0.4, 0)
+		knife.Grip = CFrame.new(0, -0.2, 0) * CFrame.Angles(0, math.rad(-90), 0)
 		
+		-- ด้ามจับหลัก (Handle)
 		local handle = Instance.new("Part")
 		handle.Name = "Handle"
-		handle.Size = Vector3.new(0.3, 1.8, 0.3)
-		handle.Color = Color3.fromRGB(180, 180, 185)
-		handle.Material = Enum.Material.Metal
+		handle.Size = Vector3.new(0.25, 1.0, 0.35)
+		handle.Color = Color3.fromRGB(85, 55, 35) -- สีไม้เข้ม
+		handle.Material = Enum.Material.Wood
 		handle.Parent = knife
+		
+		-- กระบังมือ (Guard)
+		local guard = Instance.new("Part")
+		guard.Name = "Guard"
+		guard.Size = Vector3.new(0.35, 0.1, 0.6)
+		guard.Color = Color3.fromRGB(130, 130, 135)
+		guard.Material = Enum.Material.Metal
+		guard.CanCollide = false
+		guard.CanTouch = false
+		guard.CanQuery = false
+		guard.Position = handle.Position + Vector3.new(0, 0.55, 0)
+		guard.Parent = knife
+		
+		local guardWeld = Instance.new("WeldConstraint")
+		guardWeld.Part0 = handle
+		guardWeld.Part1 = guard
+		guardWeld.Parent = handle
+		
+		-- ใบมีด (Blade)
+		local blade = Instance.new("Part")
+		blade.Name = "Blade"
+		blade.Size = Vector3.new(0.1, 1.2, 0.3)
+		blade.Color = Color3.fromRGB(200, 200, 205) -- สีเงินเมทัล
+		blade.Material = Enum.Material.Metal
+		blade.CanCollide = false
+		blade.CanTouch = false
+		blade.CanQuery = false
+		blade.Position = handle.Position + Vector3.new(0, 1.15, 0.05)
+		blade.Parent = knife
+		
+		local bladeWeld = Instance.new("WeldConstraint")
+		bladeWeld.Part0 = handle
+		bladeWeld.Part1 = blade
+		bladeWeld.Parent = handle
+		
+		-- ปลายมีดเฉียง (Blade Tip)
+		local tip = Instance.new("WedgePart")
+		tip.Name = "Tip"
+		tip.Size = Vector3.new(0.1, 0.3, 0.3)
+		tip.Color = Color3.fromRGB(200, 200, 205)
+		tip.Material = Enum.Material.Metal
+		tip.CanCollide = false
+		tip.CanTouch = false
+		tip.CanQuery = false
+		tip.CFrame = blade.CFrame * CFrame.new(0, 0.75, 0) * CFrame.Angles(0, 0, math.rad(180))
+		tip.Parent = knife
+		
+		local tipWeld = Instance.new("WeldConstraint")
+		tipWeld.Part0 = handle
+		tipWeld.Part1 = tip
+		tipWeld.Parent = handle
 		
 		knife.Parent = backpack
 	end
 	
-	-- 🔫 2. สร้างปืนพกจำลองแบบ Procedural
+	-- 🔫 2. สร้างปืนพกจำลองแบบ Procedural (รุ่นโมเดลสมจริง มีด้ามจับ, ลำกล้อง, โกร่งไกปืน)
 	if not backpack:FindFirstChild("Pistol") then
 		local pistol = Instance.new("Tool")
 		pistol.Name = "Pistol"
-		pistol.Grip = CFrame.new(0, -0.4, 0.4) * CFrame.Angles(math.rad(-10), 0, 0)
+		pistol.Grip = CFrame.new(0, -0.4, 0.3) * CFrame.Angles(math.rad(-15), 0, 0)
 		
+		-- ด้ามจับปืนหลัก (Handle)
 		local handle = Instance.new("Part")
 		handle.Name = "Handle"
-		handle.Size = Vector3.new(0.4, 0.8, 1.4)
-		handle.Color = Color3.fromRGB(45, 45, 48)
-		handle.Material = Enum.Material.Metal
+		handle.Size = Vector3.new(0.3, 0.9, 0.35)
+		handle.Color = Color3.fromRGB(30, 30, 32)
+		handle.Material = Enum.Material.SmoothPlastic
 		handle.Parent = pistol
 		
-		-- จุดปากกระบอกสำหรับใช้อ้างอิงปล่อยเส้นกระสุนเรืองแสง
+		-- สไลด์ปืนหลัก (Slide)
+		local slide = Instance.new("Part")
+		slide.Name = "Slide"
+		slide.Size = Vector3.new(0.32, 0.4, 1.3)
+		slide.Color = Color3.fromRGB(50, 50, 53)
+		slide.Material = Enum.Material.Metal
+		slide.CanCollide = false
+		slide.CanTouch = false
+		slide.CanQuery = false
+		slide.CFrame = handle.CFrame * CFrame.new(0, 0.55, -0.2)
+		slide.Parent = pistol
+		
+		local slideWeld = Instance.new("WeldConstraint")
+		slideWeld.Part0 = handle
+		slideWeld.Part1 = slide
+		slideWeld.Parent = handle
+		
+		-- ลำกล้องปืนทรงกระบอก (Barrel)
+		local barrel = Instance.new("Part")
+		barrel.Name = "Barrel"
+		barrel.Shape = Enum.PartType.Cylinder
+		barrel.Size = Vector3.new(0.65, 0.2, 0.2)
+		barrel.Color = Color3.fromRGB(15, 15, 15)
+		barrel.Material = Enum.Material.Metal
+		barrel.CanCollide = false
+		barrel.CanTouch = false
+		barrel.CanQuery = false
+		barrel.CFrame = slide.CFrame * CFrame.new(0, 0.1, -0.6) * CFrame.Angles(0, math.rad(90), 0)
+		barrel.Parent = pistol
+		
+		local barrelWeld = Instance.new("WeldConstraint")
+		barrelWeld.Part0 = handle
+		barrelWeld.Part1 = barrel
+		barrelWeld.Parent = handle
+		
+		-- โกร่งไกปืน (Trigger Guard)
+		local guard = Instance.new("Part")
+		guard.Name = "TriggerGuard"
+		guard.Size = Vector3.new(0.1, 0.25, 0.3)
+		guard.Color = Color3.fromRGB(30, 30, 32)
+		guard.Material = Enum.Material.SmoothPlastic
+		guard.CanCollide = false
+		guard.CanTouch = false
+		guard.CanQuery = false
+		guard.CFrame = handle.CFrame * CFrame.new(0, 0.35, -0.25)
+		guard.Parent = pistol
+		
+		local guardWeld = Instance.new("WeldConstraint")
+		guardWeld.Part0 = handle
+		guardWeld.Part1 = guard
+		guardWeld.Parent = handle
+		
+		-- จุดปากกระบอกอ้างอิงแสงยิงกระสุน (Muzzle)
 		local muzzle = Instance.new("Part")
 		muzzle.Name = "Muzzle"
 		muzzle.Size = Vector3.new(0.1, 0.1, 0.1)
@@ -120,14 +225,14 @@ local function giveDefaultWeapons(player)
 		muzzle.CanCollide = false
 		muzzle.CanTouch = false
 		muzzle.CanQuery = false
-		muzzle.CFrame = handle.CFrame * CFrame.new(0, 0.25, -0.7)
-		
-		local weld = Instance.new("WeldConstraint")
-		weld.Part0 = handle
-		weld.Part1 = muzzle
-		weld.Parent = handle
-		
+		muzzle.CFrame = slide.CFrame * CFrame.new(0, 0.1, -0.95)
 		muzzle.Parent = pistol
+		
+		local muzzleWeld = Instance.new("WeldConstraint")
+		muzzleWeld.Part0 = handle
+		muzzleWeld.Part1 = muzzle
+		muzzleWeld.Parent = handle
+		
 		pistol.Parent = backpack
 	end
 end
