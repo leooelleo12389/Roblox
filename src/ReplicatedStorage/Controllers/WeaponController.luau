@@ -26,6 +26,8 @@ local isReloading = false
 local lastAttackTime = 0
 local currentComboIndex = 1
 local lastComboTime = 0
+local currentIdleTrack = nil
+local currentAttackTrack = nil
 
 -- ฟังก์ชันสร้างเส้นวิถีกระสุนเรืองแสง (Bullet Tracer effect)
 local function createBulletTracer(from, to)
@@ -74,6 +76,25 @@ local function setShoulderC0(cframe)
 		pcall(function()
 			rightShoulder.Attachment0.CFrame = cframe
 		end)
+	end
+end
+
+-- ฟังก์ชันสำหรับโหลดและเล่นแอนิเมชันการโจมตีที่คุณอัปโหลดเองแบบปรับตั้งค่า (ตามวิดีโอสอน)
+local function playCustomAttackAnimation(humanoid, animId)
+	if not animId or animId == "" or animId == "rbxassetid://YOUR_ID_HERE" then return end
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then return end
+	
+	local anim = Instance.new("Animation")
+	anim.AnimationId = animId
+	local success, track = pcall(function() return animator:LoadAnimation(anim) end)
+	if success and track then
+		if currentAttackTrack then
+			currentAttackTrack:Stop()
+			currentAttackTrack:Destroy()
+		end
+		currentAttackTrack = track
+		currentAttackTrack:Play()
 	end
 end
 
@@ -247,6 +268,14 @@ local function performAttack()
 		local thisCombo = currentComboIndex
 		currentComboIndex = currentComboIndex % 3 + 1
 		
+		-- สั่งโหลดและเล่นแอนิเมชันมีดฟันแบบคีย์เฟรมที่คุณอัปโหลดเอง (ถ้ามีตั้งใน Config)
+		local comboAnims = currentWeaponData.AttackAnims
+		local animId = comboAnims and comboAnims[thisCombo]
+		local humanoid = char:FindFirstChildOfClass("Humanoid")
+		if animId and humanoid then
+			playCustomAttackAnimation(humanoid, animId)
+		end
+		
 		-- เล่นอนิเมชั่นดาบแกว่ง สั่งแขนตัวละครแกว่งจริง และทริกเกอร์ Tool swing ในระบบหลัก
 		playProceduralSlash(thisCombo)
 		currentTool:Activate() -- สั่งแกว่งแขนมาตรฐานของ Roblox
@@ -298,6 +327,14 @@ local function performAttack()
 		
 		-- เล่นเสียงปืนยิง (ปรับสปีดเร่งระดับเสียงของเสียงระเบิดโลคอลเป็นปืนยิงแหลมสะใจ)
 		playSoundLocal(currentWeaponData.FireSound, 0.65, 1.8)
+		
+		-- สั่งโหลดและเล่นแอนิเมชันปืนยิงแบบคีย์เฟรมที่คุณอัปโหลดเอง (ถ้ามีตั้งใน Config)
+		local comboAnims = currentWeaponData.AttackAnims
+		local animId = comboAnims and comboAnims[1]
+		local humanoid = char:FindFirstChildOfClass("Humanoid")
+		if animId and humanoid then
+			playCustomAttackAnimation(humanoid, animId)
+		end
 		
 		-- เล่นอนิเมชั่นแรงดีดปืน ส่ายแขนเล็กน้อย และทริกเกอร์ Tool swing
 		playProceduralRecoil()
@@ -406,6 +443,20 @@ local function setupCharacterEvents(char)
 				currentWeaponData = weaponData
 				print("[WeaponController]: 🗡️ ติดตั้งอาวุธ -> " .. child.Name)
 				
+				-- โหลดและเล่นแอนิเมชันท่าถือ (Idle) ที่นำเข้าจาก Roblox Studio (ถ้ามีตั้งใน Config)
+				local humanoid = char:FindFirstChildOfClass("Humanoid")
+				local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+				if animator and weaponData.IdleAnim and weaponData.IdleAnim ~= "" and weaponData.IdleAnim ~= "rbxassetid://YOUR_ID_HERE" then
+					local anim = Instance.new("Animation")
+					anim.AnimationId = weaponData.IdleAnim
+					local success, track = pcall(function() return animator:LoadAnimation(anim) end)
+					if success and track then
+						currentIdleTrack = track
+						currentIdleTrack.Looped = true
+						currentIdleTrack:Play()
+					end
+				end
+				
 				-- หากเป็นอาวุธปืน ให้ดึงปริมาณกระสุนและส่งข้อมูลไปโชว์บนหน้าปัดนาฬิกา
 				if weaponData.Type == "Ranged" then
 					if not ammoCount[child.Name] then
@@ -431,6 +482,18 @@ local function setupCharacterEvents(char)
 			end
 			currentComboIndex = 1
 			lastComboTime = 0
+			
+			-- ล้างแอนิเมชันของเดิมที่ค้างอยู่
+			if currentIdleTrack then
+				currentIdleTrack:Stop()
+				currentIdleTrack:Destroy()
+				currentIdleTrack = nil
+			end
+			if currentAttackTrack then
+				currentAttackTrack:Stop()
+				currentAttackTrack:Destroy()
+				currentAttackTrack = nil
+			end
 			
 			SurvivalUIController.SetWatchAmmo(false) -- ซ่อนแถบกระสุนบนนาฬิกา
 			print("[WeaponController]: ❌ เก็บอาวุธเรียบร้อย")
@@ -484,9 +547,18 @@ function WeaponController.Init()
 		local cameraDirection = camera.CFrame.LookVector
 		local pitch = math.asin(cameraDirection.Y)
 		
-		-- หมุนข้อต่อไหล่ขวาให้ก้มเงยตามกล้อง + คอยบวก CFrame อนิเมชั่นแกว่ง/เตะถอยของคอมโบ (armSwingOffset)
+		-- คำนวณขยับส่ายเบาๆ เลียนแบบการหายใจ (Breathing Sway) เพื่อไม่ให้แขนดูแข็งจนเกินไป
+		local breathingAngle = tick() * 1.5
+		local breathingSway = CFrame.new(
+			math.cos(breathingAngle) * 0.015, -- ส่ายซ้ายขวาเบาๆ
+			math.sin(breathingAngle * 2) * 0.015, -- ส่ายขึ้นลงเบาๆ
+			0
+		)
+		
+		-- หมุนข้อต่อไหล่ขวาให้ก้มเงยตามกล้อง + คอยบวกหายใจเบาๆ + บวก CFrame อนิเมชั่นแกว่ง/เตะถอยของคอมโบ (armSwingOffset)
 		setShoulderC0(originalShoulderC0 
 			* CFrame.Angles(pitch, 0, 0) 
+			* breathingSway
 			* armSwingOffset)
 	end)
 end
