@@ -6,8 +6,8 @@ local WeaponConfig = {
 			Damage = 35,
 			Range = 8,
 			Cooldown = 0.5,
-			SwingSound = "rbxassetid://12222216", -- Roblox classic sword slash whoosh sound
-			HitSound = "rbxassetid://12222222",    -- Roblox classic sword hit sound
+			SwingSound = "rbxasset://sounds/swish.wav", -- Roblox local whoosh sound (always works)
+			HitSound = "rbxasset://sounds/splat.wav",    -- Roblox local splat/flesh sound (always works)
 		},
 		Pistol = {
 			Name = "Pistol",
@@ -15,8 +15,8 @@ local WeaponConfig = {
 			Damage = 45,
 			Range = 150,
 			Cooldown = 0.35,
-			FireSound = "rbxassetid://130770091",   -- Roblox classic pistol gunshot sound
-			ReloadSound = "rbxassetid://131072986", -- Roblox classic weapon reload sound
+			FireSound = "rbxasset://sounds/impact_explosion_03.mp3", -- Roblox local thud sound (always works)
+			ReloadSound = "rbxasset://sounds/switch.mp3",            -- Roblox local click sound (always works)
 			MaxAmmo = 8,
 			ReloadTime = 1.6
 		}

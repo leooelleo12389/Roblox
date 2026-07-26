@@ -46,10 +46,11 @@ local function createBulletTracer(from, to)
 end
 
 -- ฟังก์ชันทำเสียงประจุเสียงปืนในตำแหน่งกล้อง
-local function playSoundLocal(soundId, volume)
+local function playSoundLocal(soundId, volume, playbackSpeed)
 	local sound = Instance.new("Sound")
 	sound.SoundId = soundId
 	sound.Volume = volume or 0.5
+	sound.PlaybackSpeed = playbackSpeed or 1.0
 	sound.Parent = camera
 	sound:Play()
 	Debris:AddItem(sound, 3)
@@ -104,8 +105,8 @@ local function performAttack()
 		ammoCount[currentTool.Name] = currentAmmo
 		SurvivalUIController.SetWatchAmmo(true, currentAmmo, currentWeaponData.MaxAmmo)
 		
-		-- เล่นเสียงปืนยิง
-		playSoundLocal(currentWeaponData.FireSound, 0.65)
+		-- เล่นเสียงปืนยิง (ปรับสปีดเร่งระดับเสียงของเสียงระเบิดโลคอลเป็นปืนยิงแหลมสะใจ)
+		playSoundLocal(currentWeaponData.FireSound, 0.65, 1.8)
 		
 		-- ทำการหาตำแหน่งปากกระบอกปืน (หรือใช้ตำแหน่งกริปปืนแทน)
 		local muzzlePart = currentTool:FindFirstChild("Muzzle") or currentTool:FindFirstChild("Handle")
