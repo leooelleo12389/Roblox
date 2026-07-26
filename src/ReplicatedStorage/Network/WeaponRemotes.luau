@@ -15,8 +15,16 @@ if not WeaponAttackEvent then
 	WeaponAttackEvent.Parent = RemotesFolder
 end
 
+local WeaponReplicateEvent = RemotesFolder:FindFirstChild("WeaponReplicate")
+if not WeaponReplicateEvent then
+	WeaponReplicateEvent = Instance.new("RemoteEvent")
+	WeaponReplicateEvent.Name = "WeaponReplicate"
+	WeaponReplicateEvent.Parent = RemotesFolder
+end
+
 local WeaponRemotes = {
-	WeaponAttack = WeaponAttackEvent
+	WeaponAttack = WeaponAttackEvent,
+	WeaponReplicate = WeaponReplicateEvent
 }
 
 return WeaponRemotes

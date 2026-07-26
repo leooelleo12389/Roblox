@@ -208,8 +208,17 @@ function CombatService.Init()
 		task.spawn(onPlayerAdded, p)
 	end
 	
+	-- จัดการการซิงค์สถานะการหยิบ/เก็บอาวุธข้ามเครือข่าย
+	WeaponRemotes.WeaponReplicate.OnServerEvent:Connect(function(player, actionType, weaponName)
+		if actionType == "Equip" then
+			WeaponRemotes.WeaponReplicate:FireAllClients("Equip", player, weaponName)
+		elseif actionType == "Unequip" then
+			WeaponRemotes.WeaponReplicate:FireAllClients("Unequip", player)
+		end
+	end)
+	
 	-- จัดการคำขอรหัส RemoteEvent โจมตีของอาวุธ
-	WeaponRemotes.WeaponAttack.OnServerEvent:Connect(function(player, attackType, weaponName, targetHumanoid, hitInstance, hitPos)
+	WeaponRemotes.WeaponAttack.OnServerEvent:Connect(function(player, attackType, weaponName, targetHumanoid, hitInstance, hitPos, comboIndex)
 		local char = player.Character
 		if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then return end
 		
@@ -225,7 +234,15 @@ function CombatService.Init()
 		end
 		lastPlayerAttack[player] = tick()
 		
-		-- 3. ตรวจสอบระยะพิกัดโจมตีจริงป้องกันการใช้โปรแกรมวาร์ปฟัน (Anti-Cheat Distance check)
+		-- ซิงค์จังหวะชกคอมโบออกหมัดกระจายให้คนอื่นๆ บนเซิร์ฟเวอร์
+		if attackType == "Melee" then
+			WeaponRemotes.WeaponReplicate:FireAllClients("Attack", player, weaponName, comboIndex)
+		end
+		
+		-- 3. หากเป็นการโจมตีลม (Air punch / miss) ไม่มีจุดปะทะ ให้หยุดกระบวนการสร้างความเสียหาย
+		if not hitPos then return end
+		
+		-- 4. ตรวจสอบระยะพิกัดโจมตีจริงป้องกันการใช้โปรแกรมวาร์ปฟัน (Anti-Cheat Distance check)
 		local playerPos = char.PrimaryPart.Position
 		local distance = (playerPos - hitPos).Magnitude
 		
@@ -236,7 +253,7 @@ function CombatService.Init()
 			return
 		end
 		
-		-- 4. ประมวลผลความเสียหาย (Apply Damage)
+		-- 5. ประมวลผลความเสียหาย (Apply Damage)
 		local isOrganicHit = false
 		if targetHumanoid and targetHumanoid.Health > 0 then
 			-- ห้ามโจมตีตัวเอง
@@ -247,7 +264,7 @@ function CombatService.Init()
 			end
 		end
 		
-		-- 5. จำลองเสียงพาดฟันโดนเป้าหมายและสาดอนุภาคเอฟเฟกต์
+		-- 6. จำลองเสียงพาดฟันโดนเป้าหมายและสาดอนุภาคเอฟเฟกต์
 		if attackType == "Melee" then
 			if isOrganicHit then
 				-- เสียงโจมตีสิ่งมีชีวิต (เร่งระดับความสูงของเสียงน้ำกระเซ็นโลคอลให้กลายเป็นเสียงมีดฟันเข้าเนื้อ)
