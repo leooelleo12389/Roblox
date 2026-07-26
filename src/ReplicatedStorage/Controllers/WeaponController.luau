@@ -68,8 +68,8 @@ local function performAttack()
 	
 	if currentWeaponData.Type == "Melee" then
 		-- 🗡️ [โจมตีระยะประชิด]
-		-- เล่นเสียงเหวี่ยงอาวุธ
-		playSoundLocal(currentWeaponData.SwingSound, 0.4)
+		-- เล่นเสียงเหวี่ยงอาวุธ (เร่งสปีดเสียงกระโดดทำเสียง Whoosh สั้น)
+		playSoundLocal(currentWeaponData.SwingSound, 0.45, 2.5)
 		
 		-- ทำการ Raycast จากกึ่งกลางหน้าจอกล้อง
 		local ray = camera:ViewportPointToRay(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
@@ -96,7 +96,7 @@ local function performAttack()
 		local currentAmmo = ammoCount[currentTool.Name] or currentWeaponData.MaxAmmo
 		if currentAmmo <= 0 then
 			-- เล่นเสียงคลิกปืนเปล่าไร้กระสุน (Dry fire sound)
-			playSoundLocal("rbxasset://sounds/switch.mp3", 0.4)
+			playSoundLocal("rbxasset://sounds/volume_slider.ogg", 0.4)
 			return
 		end
 		
@@ -151,8 +151,14 @@ local function performReload()
 	isReloading = true
 	print("[WeaponController]: 🔄 กำลังบรรจุกระสุนใหม่...")
 	
-	-- เล่นเสียงปืนรีโหลดกระสุน
-	playSoundLocal(currentWeaponData.ReloadSound, 0.55)
+	-- เล่นเสียงปืนรีโหลดกระสุน (สปอว์นดับเบิ้ลคลิกแคล็กสไตล์รีโหลดปืน)
+	playSoundLocal(currentWeaponData.ReloadSound, 0.55, 0.9)
+	task.spawn(function()
+		task.wait(0.3)
+		if currentTool and isReloading then
+			playSoundLocal(currentWeaponData.ReloadSound, 0.55, 1.2)
+		end
+	end)
 	
 	-- ดีเลย์ตามเวลาการรีโหลดใน Config
 	task.wait(currentWeaponData.ReloadTime)

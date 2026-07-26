@@ -50,8 +50,8 @@ spotLight.Parent = flashlightPart
 
 -- โหลดเสียงสวิตช์ไฟฉาย
 local switchSound = Instance.new("Sound")
-switchSound.SoundId = "rbxasset://sounds/switch.mp3"
-switchSound.Volume = 0.4
+switchSound.SoundId = "rbxasset://sounds/volume_slider.ogg"
+switchSound.Volume = 0.45
 switchSound.Parent = flashlightPart
 
 local flashlightEnabled = false

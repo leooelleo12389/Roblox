@@ -197,8 +197,8 @@ function CombatService.Init()
 				play3DSound(weaponData.HitSound, hitPos, 0.5)
 				spawnHitParticle(hitPos, true)
 			else
-				-- เสียงมีดฟันโดนกำแพงไม้/ปูน (เสียงเบลนบล็อกเดิม)
-				play3DSound("rbxasset://sounds/arrowhit.wav", hitPos, 0.4)
+				-- เสียงมีดฟันโดนกำแพงไม้/ปูน (ใช้เสียงตุ๊บแบบ local)
+				play3DSound("rbxasset://sounds/action_jump_land.mp3", hitPos, 0.4)
 				spawnHitParticle(hitPos, false)
 			end
 		elseif attackType == "Ranged" then
@@ -207,8 +207,8 @@ function CombatService.Init()
 				play3DSound("rbxasset://sounds/splat.wav", hitPos, 0.5)
 				spawnHitParticle(hitPos, true)
 			else
-				-- เสียงกระสุนยิงปะทะกำแพงไม้/ปูน (ใช้ไฟล์เสียงเป้าปักหัวลูกธนูแบบ local)
-				play3DSound("rbxasset://sounds/arrowhit.wav", hitPos, 0.45)
+				-- เสียงกระสุนยิงปะทะกำแพงไม้/ปูน (ใช้เสียงตุ๊บแบบ local)
+				play3DSound("rbxasset://sounds/action_jump_land.mp3", hitPos, 0.45)
 				spawnHitParticle(hitPos, false)
 			end
 		end
