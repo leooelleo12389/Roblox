@@ -28,6 +28,7 @@ local currentOffset = loweredOffset
 local watchFrame = nil
 local watchTimeLabel = nil
 local watchDayLabel = nil
+local watchSystemLabel = nil
 local isWatchOpen = false
 
 -- ตัวแปรแถบพลังงานความหิวและเปอร์เซ็นต์ติดเชื้อบนหน้าปัดนาฬิกา (เกจทรงโค้ง Left/Right)
@@ -561,11 +562,13 @@ function SurvivalUIController.CreateWristwatchUI()
 	watchFrame = container
 	watchTimeLabel = timeLabel
 	watchDayLabel = dayLabel
+	watchSystemLabel = systemLabel
 	
 	-- ตัวแปรช่วยการกะพริบไฟหน้าจอ
 	local flashTick = 0
 	
 	RunService.RenderStepped:Connect(function()
+		flashTick = flashTick + 0.15 -- อัปเดตเวลาการกะพริบอย่างสม่ำเสมอในทุกเฟรม
 		local activeCamera = workspace.CurrentCamera
 		
 		-- 3D Viewmodel Watch positioning ( Lerp Animation )
@@ -602,8 +605,7 @@ function SurvivalUIController.CreateWristwatchUI()
 		local hungerPercent = hunger / 100
 		updateArcProgress(leftGradient, hungerPercent)
 		
-		if hunger < 25 then
-			flashTick = flashTick + 0.15
+		if hunger <= 25 then
 			local flashVal = math.sin(flashTick)
 			if flashVal > 0 then
 				leftFillStroke.Color = Color3.fromRGB(255, 50, 0)
@@ -630,7 +632,6 @@ function SurvivalUIController.CreateWristwatchUI()
 			virusLabel.TextColor3 = Color3.fromRGB(240, 180, 20)
 			updateArcProgress(rightGradient, infectPercent)
 		else
-			flashTick = flashTick + 0.1
 			local vFlash = math.sin(flashTick)
 			if vFlash > 0 then
 				rightFillStroke.Color = Color3.fromRGB(255, 0, 40)
@@ -650,6 +651,34 @@ function SurvivalUIController.CreateWristwatchUI()
 		else
 			watchTimeLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
 			screenStroke.Color = Color3.fromRGB(50, 50, 53)
+		end
+		
+		-- 🖥️ อัปเดตข้อความแจ้งเตือนระบบ (System Status Label)
+		if watchSystemLabel then
+			if infection >= 75 then
+				watchSystemLabel.Text = "CRITICAL"
+				watchSystemLabel.TextColor3 = Color3.fromRGB(255, 0, 40)
+				watchSystemLabel.TextTransparency = 0
+			elseif infection > 50 then
+				watchSystemLabel.Text = "DANGER"
+				watchSystemLabel.TextColor3 = Color3.fromRGB(255, 130, 0)
+				watchSystemLabel.TextTransparency = 0
+			elseif hunger <= 25 then
+				watchSystemLabel.Text = "HUNGER"
+				watchSystemLabel.TextColor3 = Color3.fromRGB(255, 130, 0)
+				
+				-- ทำให้ข้อความ Hunger กะพริบตามจังหวะ flashTick
+				local flashVal = math.sin(flashTick)
+				if flashVal > 0 then
+					watchSystemLabel.TextTransparency = 0
+				else
+					watchSystemLabel.TextTransparency = 1
+				end
+			else
+				watchSystemLabel.Text = "SYSTEM OK"
+				watchSystemLabel.TextColor3 = Color3.fromRGB(90, 90, 95)
+				watchSystemLabel.TextTransparency = 0
+			end
 		end
 	end)
 end
