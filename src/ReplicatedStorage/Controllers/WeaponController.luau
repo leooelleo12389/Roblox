@@ -64,6 +64,19 @@ local function playSoundLocal(soundId, volume, playbackSpeed)
 	Debris:AddItem(sound, 3)
 end
 
+-- ฟังก์ชันสำหรับเซ็ตค่า C0 ของไหล่ขวาอย่างปลอดภัย (รองรับการเปิดใช้งาน Avatar Joint Upgrade ใน Roblox Studio)
+local function setShoulderC0(cframe)
+	if not rightShoulder then return end
+	local success, _ = pcall(function()
+		rightShoulder.C0 = cframe
+	end)
+	if not success then
+		pcall(function()
+			rightShoulder.Attachment0.CFrame = cframe
+		end)
+	end
+end
+
 -- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่าย RightGrip Joint ตามจังหวะคอมโบ และขยับข้อต่อไหล่ขวา)
 local function playProceduralSlash(comboIndex)
 	if not currentTool or currentTool.Name ~= "Knife" then return end
@@ -368,7 +381,14 @@ local function setupCharacterEvents(char)
 		or char:WaitForChild("Torso", 5) and char.Torso:FindFirstChild("Right Shoulder")
 	
 	if rightShoulder then
-		originalShoulderC0 = rightShoulder.C0
+		local success, val = pcall(function() return rightShoulder.C0 end)
+		if success then
+			originalShoulderC0 = val
+		else
+			pcall(function()
+				originalShoulderC0 = rightShoulder.Attachment0.CFrame
+			end)
+		end
 	end
 
 	-- ตรวจสอบเมื่อมีการหยิบอาวุธขึ้นมาถือ (ChildAdded to Character)
@@ -407,7 +427,7 @@ local function setupCharacterEvents(char)
 			-- คืนค่า C0 หัวไหล่กลับสู่สภาพเริ่มต้น และล้างค่าคอมโบ
 			armSwingOffset = CFrame.new()
 			if rightShoulder and originalShoulderC0 then
-				rightShoulder.C0 = originalShoulderC0
+				setShoulderC0(originalShoulderC0)
 			end
 			currentComboIndex = 1
 			lastComboTime = 0
@@ -441,10 +461,6 @@ function WeaponController.Init()
 	-- เชื่อมเหตุการณ์ RenderStepped เพื่อควบคุมการก้มเงยและแกว่งของข้อไหล่ขวาตามมุมกล้องและคอมโบ
 	RunService.RenderStepped:Connect(function()
 		if not currentTool or not rightShoulder or not originalShoulderC0 then
-			-- คืนค่าตำแหน่งไหล่เดิมเมื่อไม่หยิบอาวุธขึ้นมาใช้
-			if rightShoulder and originalShoulderC0 and rightShoulder.C0 ~= originalShoulderC0 then
-				rightShoulder.C0 = originalShoulderC0
-			end
 			return
 		end
 		
@@ -452,7 +468,14 @@ function WeaponController.Init()
 		if not rightShoulder.Parent then
 			rightShoulder = player.Character and (player.Character:FindFirstChild("RightShoulder", true) or player.Character:FindFirstChild("Right Shoulder", true))
 			if rightShoulder then
-				originalShoulderC0 = rightShoulder.C0
+				local success, val = pcall(function() return rightShoulder.C0 end)
+				if success then
+					originalShoulderC0 = val
+				else
+					pcall(function()
+						originalShoulderC0 = rightShoulder.Attachment0.CFrame
+					end)
+				end
 			end
 			return
 		end
@@ -462,9 +485,9 @@ function WeaponController.Init()
 		local pitch = math.asin(cameraDirection.Y)
 		
 		-- หมุนข้อต่อไหล่ขวาให้ก้มเงยตามกล้อง + คอยบวก CFrame อนิเมชั่นแกว่ง/เตะถอยของคอมโบ (armSwingOffset)
-		rightShoulder.C0 = originalShoulderC0 
+		setShoulderC0(originalShoulderC0 
 			* CFrame.Angles(pitch, 0, 0) 
-			* armSwingOffset
+			* armSwingOffset)
 	end)
 end
 
