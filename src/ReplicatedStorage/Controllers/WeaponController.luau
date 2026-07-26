@@ -18,6 +18,8 @@ local currentWeaponData = nil
 local ammoCount = {} -- เก็บลำดับกระสุนของปืนแต่ละกระบอก { [WeaponName] = ammo }
 local isReloading = false
 local lastAttackTime = 0
+local currentComboIndex = 1
+local lastComboTime = 0
 
 -- ฟังก์ชันสร้างเส้นวิถีกระสุนเรืองแสง (Bullet Tracer effect)
 local function createBulletTracer(from, to)
@@ -56,8 +58,8 @@ local function playSoundLocal(soundId, volume, playbackSpeed)
 	Debris:AddItem(sound, 3)
 end
 
--- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่าย RightGrip Joint)
-local function playProceduralSlash()
+-- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่าย RightGrip Joint ตามจังหวะคอมโบ)
+local function playProceduralSlash(comboIndex)
 	if not currentTool or currentTool.Name ~= "Knife" then return end
 	
 	local rightGrip = player.Character and player.Character:FindFirstChild("RightGrip", true)
@@ -67,26 +69,63 @@ local function playProceduralSlash()
 	
 	task.spawn(function()
 		local steps = 6
-		local duration = 0.12 -- เวลาส่ายไป
+		local duration = 0.08 -- เวลาส่ายไปอย่างรวดเร็ว
+		local recoverDuration = 0.12 -- เวลาคืนค่า
 		
-		-- 1. จังหวะฟันเฉือนออกไปข้างหน้าและเอียงเฉลียงลง
-		for i = 1, steps do
-			local t = i / steps
-			if not rightGrip or not rightGrip.Parent then break end
-			rightGrip.C1 = originalC1 
-				* CFrame.new(0.2 * t, -0.1 * t, 0.35 * t) 
-				* CFrame.Angles(math.rad(45 * t), math.rad(-15 * t), math.rad(-45 * t))
-			task.wait(duration / steps)
-		end
-		
-		-- 2. จังหวะหวนดึงมีดกลับมาท่าตั้งรับเดิม
-		for i = 1, steps do
-			local t = 1 - (i / steps)
-			if not rightGrip or not rightGrip.Parent then break end
-			rightGrip.C1 = originalC1 
-				* CFrame.new(0.2 * t, -0.1 * t, 0.35 * t) 
-				* CFrame.Angles(math.rad(45 * t), math.rad(-15 * t), math.rad(-45 * t))
-			task.wait(duration / steps)
+		if comboIndex == 1 then
+			-- 1. ฟันวาดจากซ้ายล่างไปขวาบน
+			for i = 1, steps do
+				local t = i / steps
+				if not rightGrip or not rightGrip.Parent then break end
+				rightGrip.C1 = originalC1 
+					* CFrame.new(-0.35 + 0.7 * t, -0.25 + 0.5 * t, 0.45 * t) 
+					* CFrame.Angles(math.rad(30 - 65 * t), math.rad(-15 + 30 * t), math.rad(-45 + 90 * t))
+				task.wait(duration / steps)
+			end
+			for i = 1, steps do
+				local t = 1 - (i / steps)
+				if not rightGrip or not rightGrip.Parent then break end
+				rightGrip.C1 = originalC1 
+					* CFrame.new(-0.35 + 0.7 * t, -0.25 + 0.5 * t, 0.45 * t) 
+					* CFrame.Angles(math.rad(30 - 65 * t), math.rad(-15 + 30 * t), math.rad(-45 + 90 * t))
+				task.wait(recoverDuration / steps)
+			end
+		elseif comboIndex == 2 then
+			-- 2. ฟันวาดจากขวาบนไปซ้ายล่าง
+			for i = 1, steps do
+				local t = i / steps
+				if not rightGrip or not rightGrip.Parent then break end
+				rightGrip.C1 = originalC1 
+					* CFrame.new(0.35 - 0.7 * t, 0.25 - 0.5 * t, 0.45 * t) 
+					* CFrame.Angles(math.rad(-30 + 65 * t), math.rad(15 - 30 * t), math.rad(45 - 90 * t))
+				task.wait(duration / steps)
+			end
+			for i = 1, steps do
+				local t = 1 - (i / steps)
+				if not rightGrip or not rightGrip.Parent then break end
+				rightGrip.C1 = originalC1 
+					* CFrame.new(0.35 - 0.7 * t, 0.25 - 0.5 * t, 0.45 * t) 
+					* CFrame.Angles(math.rad(-30 + 65 * t), math.rad(15 - 30 * t), math.rad(45 - 90 * t))
+				task.wait(recoverDuration / steps)
+			end
+		elseif comboIndex == 3 then
+			-- 3. แทงไปข้างหน้าตรงๆ
+			for i = 1, steps do
+				local t = i / steps
+				if not rightGrip or not rightGrip.Parent then break end
+				rightGrip.C1 = originalC1 
+					* CFrame.new(0, 0, 0.85 * t) 
+					* CFrame.Angles(math.rad(15 * t), 0, 0)
+				task.wait(duration / steps)
+			end
+			for i = 1, steps do
+				local t = 1 - (i / steps)
+				if not rightGrip or not rightGrip.Parent then break end
+				rightGrip.C1 = originalC1 
+					* CFrame.new(0, 0, 0.85 * t) 
+					* CFrame.Angles(math.rad(15 * t), 0, 0)
+				task.wait(recoverDuration / steps)
+			end
 		end
 		
 		if rightGrip and rightGrip.Parent then
@@ -141,20 +180,37 @@ local function performAttack()
 	local char = player.Character
 	if not char or not char:FindFirstChildOfClass("Humanoid") or char:FindFirstChildOfClass("Humanoid").Health <= 0 then return end
 	
-	lastAttackTime = tick()
+	local now = tick()
+	-- ตรวจสอบเวลาระหว่างการโจมตี หากเกิน 1 วินาที ให้รีเซ็ตคอมโบกลับไปคลิกครั้งที่ 1
+	if now - lastComboTime > 1.0 then
+		currentComboIndex = 1
+	end
+	
+	lastAttackTime = now
+	lastComboTime = now
 	
 	if currentWeaponData.Type == "Melee" then
 		-- 🗡️ [โจมตีระยะประชิด]
 		-- เล่นเสียงเหวี่ยงอาวุธ (เร่งสปีดเสียงกระโดดทำเสียง Whoosh สั้น)
 		playSoundLocal(currentWeaponData.SwingSound, 0.45, 2.5)
 		
+		-- บันทึกค่าคอมโบรอบนี้ และอัปเดตรอบถัดไป (1 -> 2 -> 3 -> 1)
+		local thisCombo = currentComboIndex
+		currentComboIndex = currentComboIndex % 3 + 1
+		
 		-- เล่นอนิเมชั่นดาบแกว่ง สั่งแขนตัวละครแกว่งจริง และทริกเกอร์ Tool swing ในระบบหลัก
-		playProceduralSlash()
+		playProceduralSlash(thisCombo)
 		currentTool:Activate() -- สั่งแกว่งแขนมาตรฐานของ Roblox
+		
 		local animate = char:FindFirstChild("Animate")
 		local toolanim = animate and animate:FindFirstChild("toolanim")
 		if toolanim then
-			toolanim.Value = "Slash"
+			-- คอมโบที่ 3 (แทง) ใช้ท่า Lunge ยื่นไปข้างหน้าตรงๆ, คอมโบ 1-2 ใช้ท่าฟันปกติ
+			if thisCombo == 3 then
+				toolanim.Value = "Lunge"
+			else
+				toolanim.Value = "Slash"
+			end
 		end
 		
 		-- ทำการ Raycast จากกึ่งกลางหน้าจอกล้อง
@@ -277,6 +333,10 @@ local function setupCharacterEvents(char)
 			currentTool = child
 			local weaponData = WeaponConfig.Weapons[child.Name]
 			
+			-- รีเซ็ตค่าคอมโบเมื่อถืออาวุธชิ้นใหม่
+			currentComboIndex = 1
+			lastComboTime = 0
+			
 			if weaponData then
 				currentWeaponData = weaponData
 				print("[WeaponController]: 🗡️ ติดตั้งอาวุธ -> " .. child.Name)
@@ -298,6 +358,11 @@ local function setupCharacterEvents(char)
 			currentTool = nil
 			currentWeaponData = nil
 			isReloading = false
+			
+			-- รีเซ็ตค่าคอมโบเมื่อเก็บอาวุธ
+			currentComboIndex = 1
+			lastComboTime = 0
+			
 			SurvivalUIController.SetWatchAmmo(false) -- ซ่อนแถบกระสุนบนนาฬิกา
 			print("[WeaponController]: ❌ เก็บอาวุธเรียบร้อย")
 		end
