@@ -418,23 +418,6 @@ local function performReload()
 	end
 end
 
--- ฟังก์ชันติดตั้งตัวดักจับเหตุการณ์ของตัวละคร (Equip / Unequip detection)
-local function setupCharacterEvents(char)
-	-- ดึงข้อต่อหัวไหล่ขวาเมื่อตัวละครโหลด
-	rightShoulder = char:WaitForChild("RightUpperArm", 5) and char.RightUpperArm:FindFirstChild("RightShoulder")
-		or char:WaitForChild("Torso", 5) and char.Torso:FindFirstChild("Right Shoulder")
-	
-	if rightShoulder then
-		local success, val = pcall(function() return rightShoulder.C0 end)
-		if success then
-			originalShoulderC0 = val
-		else
-			pcall(function()
-				originalShoulderC0 = rightShoulder.Attachment0.CFrame
-			end)
-		end
-	end
-
 	-- ฟังก์ชันติดตั้งตัวดักจับเหตุการณ์ของตัวละคร (Equip / Unequip detection)
 local function setupCharacterEvents(char)
 	-- ดึงข้อต่อหัวไหล่ขวาเมื่อตัวละครโหลด
