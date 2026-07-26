@@ -83,72 +83,23 @@ local function giveDefaultWeapons(player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
 	if not backpack then return end
 	
-	-- 🗡️ 1. สร้างมีดจำลองแบบ Procedural (รุ่นมีใบมีด, กระบังมือ และด้ามไม้)
-	if not backpack:FindFirstChild("Knife") then
-		local knife = Instance.new("Tool")
-		knife.Name = "Knife"
-		knife.Grip = CFrame.new(0, -0.2, 0) * CFrame.Angles(0, math.rad(-90), 0)
+	-- 🥊 1. สร้างหมัดจำลองแบบ Procedural (รุ่น Handle ล่องหนเพื่อให้แสดงกระดูกหมัดโดยไม่มีอาวุธมาทับ)
+	if not backpack:FindFirstChild("Fists") then
+		local fists = Instance.new("Tool")
+		fists.Name = "Fists"
+		fists.Grip = CFrame.new(0, 0, 0)
 		
-		-- ด้ามจับหลัก (Handle)
+		-- ด้ามจับหลักล่องหน (Handle)
 		local handle = Instance.new("Part")
 		handle.Name = "Handle"
-		handle.Size = Vector3.new(0.25, 1.0, 0.35)
-		handle.Color = Color3.fromRGB(85, 55, 35) -- สีไม้เข้ม
-		handle.Material = Enum.Material.Wood
-		handle.Parent = knife
+		handle.Size = Vector3.new(0.05, 0.05, 0.05)
+		handle.Transparency = 1
+		handle.CanCollide = false
+		handle.CanTouch = false
+		handle.CanQuery = false
+		handle.Parent = fists
 		
-		-- กระบังมือ (Guard)
-		local guard = Instance.new("Part")
-		guard.Name = "Guard"
-		guard.Size = Vector3.new(0.35, 0.1, 0.6)
-		guard.Color = Color3.fromRGB(130, 130, 135)
-		guard.Material = Enum.Material.Metal
-		guard.CanCollide = false
-		guard.CanTouch = false
-		guard.CanQuery = false
-		guard.Position = handle.Position + Vector3.new(0, 0.55, 0)
-		guard.Parent = knife
-		
-		local guardWeld = Instance.new("WeldConstraint")
-		guardWeld.Part0 = handle
-		guardWeld.Part1 = guard
-		guardWeld.Parent = handle
-		
-		-- ใบมีด (Blade)
-		local blade = Instance.new("Part")
-		blade.Name = "Blade"
-		blade.Size = Vector3.new(0.1, 1.2, 0.3)
-		blade.Color = Color3.fromRGB(200, 200, 205) -- สีเงินเมทัล
-		blade.Material = Enum.Material.Metal
-		blade.CanCollide = false
-		blade.CanTouch = false
-		blade.CanQuery = false
-		blade.Position = handle.Position + Vector3.new(0, 1.15, 0.05)
-		blade.Parent = knife
-		
-		local bladeWeld = Instance.new("WeldConstraint")
-		bladeWeld.Part0 = handle
-		bladeWeld.Part1 = blade
-		bladeWeld.Parent = handle
-		
-		-- ปลายมีดเฉียง (Blade Tip)
-		local tip = Instance.new("WedgePart")
-		tip.Name = "Tip"
-		tip.Size = Vector3.new(0.1, 0.3, 0.3)
-		tip.Color = Color3.fromRGB(200, 200, 205)
-		tip.Material = Enum.Material.Metal
-		tip.CanCollide = false
-		tip.CanTouch = false
-		tip.CanQuery = false
-		tip.CFrame = blade.CFrame * CFrame.new(0, 0.75, 0) * CFrame.Angles(0, 0, math.rad(180))
-		tip.Parent = knife
-		
-		local tipWeld = Instance.new("WeldConstraint")
-		tipWeld.Part0 = handle
-		tipWeld.Part1 = tip
-		tipWeld.Parent = handle
-		
-		knife.Parent = backpack
+		fists.Parent = backpack
 	end
 	
 	-- 🔫 2. สร้างปืนพกจำลองแบบ Procedural (รุ่นโมเดลสมจริง มีด้ามจับ, ลำกล้อง, โกร่งไกปืน)

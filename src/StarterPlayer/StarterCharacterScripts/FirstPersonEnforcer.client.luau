@@ -34,20 +34,23 @@ local function setupFirstPerson()
 		end
 	end
 	
-	-- 3. แสดงเฉพาะปลายแขนขวาและเครื่องมือที่ถือเพื่อไม่ให้บดบังมุมมองหน้าจอ
+	-- 3. แสดงเฉพาะปลายแขนขวาและเครื่องมือที่ถือเพื่อไม่ให้บดบังมุมมองหน้าจอ (แสดงแขนซ้ายเฉพาะเวลาชกมวย Fists)
 	RunService.RenderStepped:Connect(function()
+		local holdingFists = character:FindFirstChild("Fists") ~= nil
 		for _, child in ipairs(character:GetChildren()) do
-			-- สำหรับโมเดล R15: แสดงเฉพาะมือขวาและแขนท่อนล่างขวา ซ่อนส่วนไหล่และแขนซ้ายทั้งหมด
+			-- สำหรับโมเดล R15: แสดงเฉพาะมือขวาและแขนท่อนล่างขวา ซ่อนส่วนไหล่และแขนซ้ายทั้งหมด (แสดงซ้ายเฉพาะเมื่อใช้ Fists)
 			if child.Name == "RightHand" or child.Name == "RightLowerArm" then
 				child.LocalTransparencyModifier = 0
-			elseif child.Name == "RightUpperArm" or child.Name == "LeftHand" or child.Name == "LeftLowerArm" or child.Name == "LeftUpperArm" then
+			elseif child.Name == "LeftHand" or child.Name == "LeftLowerArm" then
+				child.LocalTransparencyModifier = holdingFists and 0 or 1
+			elseif child.Name == "RightUpperArm" or child.Name == "LeftUpperArm" then
 				child.LocalTransparencyModifier = 1
 				
-			-- สำหรับโมเดล R6: แสดงแขนขวา ซ่อนแขนซ้าย
+			-- สำหรับโมเดล R6: แสดงแขนขวา ซ่อนแขนซ้าย (แสดงแขนซ้ายเมื่อใช้ Fists)
 			elseif child.Name == "Right Arm" then
 				child.LocalTransparencyModifier = 0
 			elseif child.Name == "Left Arm" then
-				child.LocalTransparencyModifier = 1
+				child.LocalTransparencyModifier = holdingFists and 0 or 1
 				
 			-- แสดงเครื่องมือ/อาวุธที่กำลังถืออยู่เสมอ
 			elseif child:IsA("Tool") then

@@ -1,20 +1,20 @@
 local WeaponConfig = {
 	Weapons = {
-		Knife = {
-			Name = "Knife",
+		Fists = {
+			Name = "Fists",
 			Type = "Melee",
-			Damage = 35,
-			Range = 8,
-			Cooldown = 0.5,
-			SwingSound = "rbxasset://sounds/action_jump.mp3",
-			HitSound = "rbxasset://sounds/impact_water.mp3",
+			Damage = 25,
+			Range = 6,
+			Cooldown = 0.4,
+			SwingSound = "rbxasset://sounds/action_jump.mp3", -- เสียงวู้ชลมปล่อยหมัด (pitched up)
+			HitSound = "rbxasset://sounds/impact_water.mp3", -- เสียงกระทบเนื้อเยื่อซอมบี้
 			
-			-- ใส่ ID อนิเมชั่นที่คุณสร้างและส่งออกจาก Roblox Studio (ตามวิดีโอสอน)
-			IdleAnim = "rbxassetid://YOUR_ID_HERE", -- ท่าถือมีด
+			-- ใส่ ID อนิเมชั่นสำหรับการต่อสู้ด้วยหมัด (หากต้องการนำเข้าคีย์เฟรมเอง)
+			IdleAnim = "rbxassetid://YOUR_ID_HERE",
 			AttackAnims = {
-				"rbxassetid://YOUR_ID_HERE", -- คอมโบ 1 (ฟันขึ้น)
-				"rbxassetid://YOUR_ID_HERE", -- คอมโบ 2 (ฟันลง)
-				"rbxassetid://YOUR_ID_HERE"  -- คอมโบ 3 (แทง)
+				"rbxassetid://YOUR_ID_HERE", -- คอมโบ 1 (หมัดขวาตรง)
+				"rbxassetid://YOUR_ID_HERE", -- คอมโบ 2 (หมัดซ้ายตรง)
+				"rbxassetid://YOUR_ID_HERE"  -- คอมโบ 3 (อัปเปอร์คัทขวา)
 			}
 		},
 		Pistol = {
@@ -28,10 +28,9 @@ local WeaponConfig = {
 			MaxAmmo = 8,
 			ReloadTime = 1.6,
 			
-			-- ใส่ ID อนิเมชั่นปืนพกถ้ามี
 			IdleAnim = "rbxassetid://YOUR_ID_HERE", 
 			AttackAnims = {
-				"rbxassetid://YOUR_ID_HERE" -- ท่ายิงปืนถีบกลับ
+				"rbxassetid://YOUR_ID_HERE"
 			}
 		}
 	}

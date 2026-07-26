@@ -10,12 +10,18 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
--- ตัวแปรควบคุมการขยับแขนขวาในมุมมองบุคคลที่หนึ่ง
+-- ตัวแปรควบคุมการขยับแขนขวาและซ้ายในมุมมองบุคคลที่หนึ่ง
 local rightShoulder = nil
 local originalShoulderC0 = nil
 local rightElbow = nil
 local originalElbowC0 = nil
 local armSwingOffset = CFrame.new()
+
+local leftShoulder = nil
+local originalLeftShoulderC0 = nil
+local leftElbow = nil
+local originalLeftElbowC0 = nil
+local leftArmSwingOffset = CFrame.new()
 
 local WeaponConfig = require(ReplicatedStorage:WaitForChild("Configs"):WaitForChild("WeaponConfig"))
 local WeaponRemotes = require(ReplicatedStorage:WaitForChild("Network"):WaitForChild("WeaponRemotes"))
@@ -94,6 +100,32 @@ local function setElbowC0(cframe)
 	end
 end
 
+-- ฟังก์ชันสำหรับเซ็ตค่า C0 ของไหล่ซ้ายอย่างปลอดภัย
+local function setLeftShoulderC0(cframe)
+	if not leftShoulder then return end
+	local success, _ = pcall(function()
+		leftShoulder.C0 = cframe
+	end)
+	if not success then
+		pcall(function()
+			leftShoulder.Attachment0.CFrame = cframe
+		end)
+	end
+end
+
+-- ฟังก์ชันสำหรับเซ็ตค่า C0 ของข้อศอกซ้ายอย่างปลอดภัย
+local function setLeftElbowC0(cframe)
+	if not leftElbow then return end
+	local success, _ = pcall(function()
+		leftElbow.C0 = cframe
+	end)
+	if not success then
+		pcall(function()
+			leftElbow.Attachment0.CFrame = cframe
+		end)
+	end
+end
+
 -- ฟังก์ชันสำหรับโหลดและเล่นแอนิเมชันการโจมตีที่คุณอัปโหลดเองแบบปรับตั้งค่า (ตามวิดีโอสอน)
 local function playCustomAttackAnimation(humanoid, animId)
 	if not animId or animId == "" or animId == "rbxassetid://YOUR_ID_HERE" then return end
@@ -113,101 +145,61 @@ local function playCustomAttackAnimation(humanoid, animId)
 	end
 end
 
--- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่าย RightGrip Joint ตามจังหวะคอมโบ และขยับข้อต่อไหล่ขวา)
+-- อนิเมชั่นปล่อยหมัดแบบ Procedural (ส่ายไหล่ขวา/ซ้ายตามจังหวะ)
 local function playProceduralSlash(comboIndex)
-	if not currentTool or currentTool.Name ~= "Knife" then return end
-	
-	local rightGrip = player.Character and player.Character:FindFirstChild("RightGrip", true)
-	if not rightGrip then return end
-	
-	local originalC1 = rightGrip.C1
+	if not currentTool or currentTool.Name ~= "Fists" then return end
 	
 	task.spawn(function()
-		local steps = 6
-		local duration = 0.08 -- เวลาส่ายไปอย่างรวดเร็ว
-		local recoverDuration = 0.12 -- เวลาคืนค่า
+		local steps = 5
+		local duration = 0.06 -- ปล่อยหมัดรวดเร็วมาก
+		local recoverDuration = 0.12 -- ดึงหมัดกลับช้าลงเล็กน้อย
 		
 		if comboIndex == 1 then
-			-- 1. ฟันวาดจากซ้ายล่างไปขวาบน
+			-- 1. หมัดขวาตรง (Right Jab/Punch)
 			for i = 1, steps do
 				local t = i / steps
-				if not rightGrip or not rightGrip.Parent then break end
-				rightGrip.C1 = originalC1 
-					* CFrame.new(-0.35 + 0.7 * t, -0.25 + 0.5 * t, 0.45 * t) 
-					* CFrame.Angles(math.rad(30 - 65 * t), math.rad(-15 + 30 * t), math.rad(-45 + 90 * t))
-				
-				-- ขยับไหล่ให้วาดแขนตามแนวมีดเฉลียงขึ้นบน
-				armSwingOffset = CFrame.new(-0.25 * t, 0.3 * t, -0.45 * t) 
-					* CFrame.Angles(math.rad(35 * t), math.rad(15 * t), math.rad(-25 * t))
+				armSwingOffset = CFrame.new(0.15 * t, -0.05 * t, -0.9 * t) 
+					* CFrame.Angles(math.rad(25 * t), 0, math.rad(-15 * t))
 				task.wait(duration / steps)
 			end
 			for i = 1, steps do
 				local t = 1 - (i / steps)
-				if not rightGrip or not rightGrip.Parent then break end
-				rightGrip.C1 = originalC1 
-					* CFrame.new(-0.35 + 0.7 * t, -0.25 + 0.5 * t, 0.45 * t) 
-					* CFrame.Angles(math.rad(30 - 65 * t), math.rad(-15 + 30 * t), math.rad(-45 + 90 * t))
-				
-				armSwingOffset = CFrame.new(-0.25 * t, 0.3 * t, -0.45 * t) 
-					* CFrame.Angles(math.rad(35 * t), math.rad(15 * t), math.rad(-25 * t))
+				armSwingOffset = CFrame.new(0.15 * t, -0.05 * t, -0.9 * t) 
+					* CFrame.Angles(math.rad(25 * t), 0, math.rad(-15 * t))
 				task.wait(recoverDuration / steps)
 			end
 		elseif comboIndex == 2 then
-			-- 2. ฟันวาดจากขวาบนไปซ้ายล่าง
+			-- 2. หมัดซ้ายตรง (Left Jab/Punch)
 			for i = 1, steps do
 				local t = i / steps
-				if not rightGrip or not rightGrip.Parent then break end
-				rightGrip.C1 = originalC1 
-					* CFrame.new(0.35 - 0.7 * t, 0.25 - 0.5 * t, 0.45 * t) 
-					* CFrame.Angles(math.rad(-30 + 65 * t), math.rad(15 - 30 * t), math.rad(45 - 90 * t))
-				
-				-- ขยับไหล่ให้ท่อนแขนเฉือนกวาดกลับทาง
-				armSwingOffset = CFrame.new(0.1 - 0.35 * t, 0.2 - 0.45 * t, -0.4 * t) 
-					* CFrame.Angles(math.rad(30 - 50 * t), math.rad(-15 * t), math.rad(25 * t))
+				leftArmSwingOffset = CFrame.new(-0.15 * t, -0.05 * t, -0.9 * t) 
+					* CFrame.Angles(math.rad(25 * t), 0, math.rad(15 * t))
 				task.wait(duration / steps)
 			end
 			for i = 1, steps do
 				local t = 1 - (i / steps)
-				if not rightGrip or not rightGrip.Parent then break end
-				rightGrip.C1 = originalC1 
-					* CFrame.new(0.35 - 0.7 * t, 0.25 - 0.5 * t, 0.45 * t) 
-					* CFrame.Angles(math.rad(-30 + 65 * t), math.rad(15 - 30 * t), math.rad(45 - 90 * t))
-				
-				armSwingOffset = CFrame.new(0.1 - 0.35 * t, 0.2 - 0.45 * t, -0.4 * t) 
-					* CFrame.Angles(math.rad(30 - 50 * t), math.rad(-15 * t), math.rad(25 * t))
+				leftArmSwingOffset = CFrame.new(-0.15 * t, -0.05 * t, -0.9 * t) 
+					* CFrame.Angles(math.rad(25 * t), 0, math.rad(15 * t))
 				task.wait(recoverDuration / steps)
 			end
 		elseif comboIndex == 3 then
-			-- 3. แทงไปข้างหน้าตรงๆ
+			-- 3. อัปเปอร์คัทขวา (Right Uppercut)
 			for i = 1, steps do
 				local t = i / steps
-				if not rightGrip or not rightGrip.Parent then break end
-				rightGrip.C1 = originalC1 
-					* CFrame.new(0, 0, 0.85 * t) 
-					* CFrame.Angles(math.rad(15 * t), 0, 0)
-				
-				-- ขยับไหล่ขวายื่นแขนแทงลึกไปข้างหน้า
-				armSwingOffset = CFrame.new(0, -0.15 * t, -0.7 * t) 
-					* CFrame.Angles(math.rad(45 * t), 0, 0)
+				armSwingOffset = CFrame.new(-0.35 * t, -0.3 + 0.6 * t, -0.6 * t) 
+					* CFrame.Angles(math.rad(45 * t), math.rad(-25 * t), math.rad(-45 * t))
 				task.wait(duration / steps)
 			end
 			for i = 1, steps do
 				local t = 1 - (i / steps)
-				if not rightGrip or not rightGrip.Parent then break end
-				rightGrip.C1 = originalC1 
-					* CFrame.new(0, 0, 0.85 * t) 
-					* CFrame.Angles(math.rad(15 * t), 0, 0)
-				
-				armSwingOffset = CFrame.new(0, -0.15 * t, -0.7 * t) 
-					* CFrame.Angles(math.rad(45 * t), 0, 0)
+				armSwingOffset = CFrame.new(-0.35 * t, -0.3 + 0.6 * t, -0.6 * t) 
+					* CFrame.Angles(math.rad(45 * t), math.rad(-25 * t), math.rad(-45 * t))
 				task.wait(recoverDuration / steps)
 			end
 		end
 		
 		armSwingOffset = CFrame.new()
-		if rightGrip and rightGrip.Parent then
-			rightGrip.C1 = originalC1
-		end
+		leftArmSwingOffset = CFrame.new()
 	end)
 end
 
@@ -443,6 +435,23 @@ local function setupCharacterEvents(char)
 		end
 	end
 
+	-- ฟังก์ชันติดตั้งตัวดักจับเหตุการณ์ของตัวละคร (Equip / Unequip detection)
+local function setupCharacterEvents(char)
+	-- ดึงข้อต่อหัวไหล่ขวาเมื่อตัวละครโหลด
+	rightShoulder = char:WaitForChild("RightUpperArm", 5) and char.RightUpperArm:FindFirstChild("RightShoulder")
+		or char:WaitForChild("Torso", 5) and char.Torso:FindFirstChild("Right Shoulder")
+	
+	if rightShoulder then
+		local success, val = pcall(function() return rightShoulder.C0 end)
+		if success then
+			originalShoulderC0 = val
+		else
+			pcall(function()
+				originalShoulderC0 = rightShoulder.Attachment0.CFrame
+			end)
+		end
+	end
+
 	-- ดึงข้อต่อข้อศอกขวาเมื่อตัวละครโหลด (กรณี R15)
 	rightElbow = char:WaitForChild("RightLowerArm", 5) and char.RightLowerArm:FindFirstChild("RightElbow")
 	if rightElbow then
@@ -456,6 +465,34 @@ local function setupCharacterEvents(char)
 		end
 	end
 
+	-- ดึงข้อต่อหัวไหล่ซ้ายเมื่อตัวละครโหลด
+	leftShoulder = char:WaitForChild("LeftUpperArm", 5) and char.LeftUpperArm:FindFirstChild("LeftShoulder")
+		or char:WaitForChild("Torso", 5) and char.Torso:FindFirstChild("Left Shoulder")
+	
+	if leftShoulder then
+		local success, val = pcall(function() return leftShoulder.C0 end)
+		if success then
+			originalLeftShoulderC0 = val
+		else
+			pcall(function()
+				originalLeftShoulderC0 = leftShoulder.Attachment0.CFrame
+			end)
+		end
+	end
+
+	-- ดึงข้อต่อข้อศอกซ้ายเมื่อตัวละครโหลด (กรณี R15)
+	leftElbow = char:WaitForChild("LeftLowerArm", 5) and char.LeftLowerArm:FindFirstChild("LeftElbow")
+	if leftElbow then
+		local success, val = pcall(function() return leftElbow.C0 end)
+		if success then
+			originalLeftElbowC0 = val
+		else
+			pcall(function()
+				originalLeftElbowC0 = leftElbow.Attachment0.CFrame
+			end)
+		end
+	end
+
 	-- ตรวจสอบเมื่อมีการหยิบอาวุธขึ้นมาถือ (ChildAdded to Character)
 	char.ChildAdded:Connect(function(child)
 		if child:IsA("Tool") then
@@ -464,12 +501,13 @@ local function setupCharacterEvents(char)
 			
 			-- รีเซ็ตอนิเมชั่นหัวไหล่และค่าคอมโบใหม่
 			armSwingOffset = CFrame.new()
+			leftArmSwingOffset = CFrame.new()
 			currentComboIndex = 1
 			lastComboTime = 0
 			
 			if weaponData then
 				currentWeaponData = weaponData
-				print("[WeaponController]: 🗡️ ติดตั้งอาวุธ -> " .. child.Name)
+				print("[WeaponController]: 🥊 ติดตั้งอาวุธ -> " .. child.Name)
 				
 				-- โหลดและเล่นแอนิเมชันท่าถือ (Idle) ที่นำเข้าจาก Roblox Studio (ถ้ามีตั้งใน Config)
 				local humanoid = char:FindFirstChildOfClass("Humanoid")
@@ -505,11 +543,18 @@ local function setupCharacterEvents(char)
 			
 			-- คืนค่า C0 หัวไหล่และข้อศอกกลับสู่สภาพเริ่มต้น และล้างค่าคอมโบ
 			armSwingOffset = CFrame.new()
+			leftArmSwingOffset = CFrame.new()
 			if rightShoulder and originalShoulderC0 then
 				setShoulderC0(originalShoulderC0)
 			end
 			if rightElbow and originalElbowC0 then
 				setElbowC0(originalElbowC0)
+			end
+			if leftShoulder and originalLeftShoulderC0 then
+				setLeftShoulderC0(originalLeftShoulderC0)
+			end
+			if leftElbow and originalLeftElbowC0 then
+				setLeftElbowC0(originalLeftElbowC0)
 			end
 			currentComboIndex = 1
 			lastComboTime = 0
@@ -552,7 +597,7 @@ function WeaponController.Init()
 		end
 	end)
 
-	-- เชื่อมเหตุการณ์ RenderStepped เพื่อควบคุมการก้มเงยและแกว่งของข้อไหล่ขวาตามมุมกล้องและคอมโบ
+	-- เชื่อมเหตุการณ์ RenderStepped เพื่อควบคุมการก้มเงยและแกว่งของข้อไหล่และข้อศอกซ้ายขวา
 	RunService.RenderStepped:Connect(function()
 		if not currentTool or not rightShoulder or not originalShoulderC0 then
 			-- คืนค่าข้อต่อเมื่อเก็บไอเทมเพื่อไม่ให้ท่าเดินค้างเบี้ยว
@@ -561,6 +606,12 @@ function WeaponController.Init()
 			end
 			if rightElbow and originalElbowC0 then
 				setElbowC0(originalElbowC0)
+			end
+			if leftShoulder and originalLeftShoulderC0 then
+				setLeftShoulderC0(originalLeftShoulderC0)
+			end
+			if leftElbow and originalLeftElbowC0 then
+				setLeftElbowC0(originalLeftElbowC0)
 			end
 			return
 		end
@@ -590,6 +641,30 @@ function WeaponController.Init()
 					end)
 				end
 			end
+			
+			leftShoulder = player.Character and (player.Character:FindFirstChild("LeftShoulder", true) or player.Character:FindFirstChild("Left Shoulder", true))
+			if leftShoulder then
+				local success, val = pcall(function() return leftShoulder.C0 end)
+				if success then
+					originalLeftShoulderC0 = val
+				else
+					pcall(function()
+						originalLeftShoulderC0 = leftShoulder.Attachment0.CFrame
+					end)
+				end
+			end
+			
+			leftElbow = player.Character and player.Character:FindFirstChild("LeftLowerArm", true) and player.Character.LeftLowerArm:FindFirstChild("LeftElbow")
+			if leftElbow then
+				local success, val = pcall(function() return leftElbow.C0 end)
+				if success then
+					originalLeftElbowC0 = val
+				else
+					pcall(function()
+						originalLeftElbowC0 = leftElbow.Attachment0.CFrame
+					end)
+				end
+			end
 			return
 		end
 		
@@ -597,31 +672,66 @@ function WeaponController.Init()
 		local cameraDirection = camera.CFrame.LookVector
 		local pitch = math.asin(cameraDirection.Y)
 		
-		-- คำนวณขยับส่ายเบาๆ เลียนแบบการหายใจ (Breathing Sway) เพื่อไม่ให้แขนดูแข็งจนเกินไป
+		-- คำนวณขยับส่ายเบาๆ เลียนแบบการหายใจ (Breathing Sway)
 		local breathingAngle = tick() * 1.5
 		local breathingSway = CFrame.new(
-			math.cos(breathingAngle) * 0.015, -- ส่ายซ้ายขวาเบาๆ
-			math.sin(breathingAngle * 2) * 0.015, -- ส่ายขึ้นลงเบาๆ
+			math.cos(breathingAngle) * 0.015,
+			math.sin(breathingAngle * 2) * 0.015,
 			0
 		)
 		
-		-- จัดท่าทางแขนขวาให้ยกขึ้นโชว์บนหน้าจอแบบ Viewmodel (First Person)
-		if rightElbow and originalElbowC0 then
-			-- งอข้อศอกให้ชูชิ้นส่วนปลายแขนและมือขึ้นมาหน้ากล้อง (Elbow bend forward)
-			setElbowC0(originalElbowC0 * CFrame.Angles(math.rad(-75), 0, 0))
-			
-			-- ปรับพิกัดไหล่ให้เอียงกระดูกยกแขนเข้ามาอยู่โซนด้านหน้ากล้อง
-			setShoulderC0(originalShoulderC0 
-				* CFrame.new(-0.25, -0.15, -0.4) -- เลื่อนไหล่เข้าหากึ่งกลางและยื่นไปหน้า
-				* CFrame.Angles(pitch + math.rad(35), math.rad(-25), math.rad(-15)) -- บิดไหล่ขวาเฉียงขึ้นมาจับ
-				* breathingSway
-				* armSwingOffset)
+		-- จัดท่าทางท่อนแขนแบบ Viewmodel
+		if currentTool.Name == "Fists" then
+			-- 🥊 ท่าตั้งการ์ดหมัดคู่ (Boxing Guard Stance)
+			if rightElbow and originalElbowC0 and leftElbow and originalLeftElbowC0 then
+				-- งอศอกทั้งสองข้างขึ้นมา (Elbows bent forward)
+				setElbowC0(originalElbowC0 * CFrame.Angles(math.rad(-75), 0, 0))
+				setLeftElbowC0(originalLeftElbowC0 * CFrame.Angles(math.rad(-75), 0, 0))
+				
+				-- หมุนไหล่ขวา ดึงหมัดขวาขึ้นตั้งการ์ดด้านขวาของหน้าจอ
+				setShoulderC0(originalShoulderC0 
+					* CFrame.new(-0.25, -0.15, -0.4) 
+					* CFrame.Angles(pitch + math.rad(35), math.rad(-25), math.rad(-15)) 
+					* breathingSway
+					* armSwingOffset)
+				
+				-- หมุนไหล่ซ้าย ดึงหมัดซ้ายขึ้นตั้งการ์ดด้านซ้ายของหน้าจอ (ส่ายคนละเฟสเพื่อความเป็นธรรมชาติ)
+				local leftBreathingSway = CFrame.new(
+					math.cos(breathingAngle + math.pi) * 0.015,
+					math.sin(breathingAngle * 2 + math.pi) * 0.015,
+					0
+				)
+				setLeftShoulderC0(originalLeftShoulderC0 
+					* CFrame.new(0.25, -0.15, -0.4) 
+					* CFrame.Angles(pitch + math.rad(35), math.rad(25), math.rad(15)) 
+					* leftBreathingSway
+					* leftArmSwingOffset)
+			else
+				-- ระบบสำรองสำหรับ R6: หมุนแค่ไหล่คู่สลับกัน
+				setShoulderC0(originalShoulderC0 * CFrame.Angles(pitch, 0, 0) * breathingSway * armSwingOffset)
+				if leftShoulder and originalLeftShoulderC0 then
+					setLeftShoulderC0(originalLeftShoulderC0 * CFrame.Angles(pitch, 0, 0) * breathingSway * leftArmSwingOffset)
+				end
+			end
 		else
-			-- สำหรับ R6 หรือกรณีไม่มีข้อศอก: ใช้การหมุนก้มเงยปกติ
-			setShoulderC0(originalShoulderC0 
-				* CFrame.Angles(pitch, 0, 0) 
-				* breathingSway
-				* armSwingOffset)
+			-- 🔫 ปืนพกหรือเครื่องมืออื่น: ใช้แค่แขนขวา แขนซ้ายปล่อยท่าทางธรรมชาติ
+			if leftShoulder and originalLeftShoulderC0 then
+				setLeftShoulderC0(originalLeftShoulderC0)
+			end
+			if leftElbow and originalLeftElbowC0 then
+				setLeftElbowC0(originalLeftElbowC0)
+			end
+			
+			if rightElbow and originalElbowC0 then
+				setElbowC0(originalElbowC0 * CFrame.Angles(math.rad(-75), 0, 0))
+				setShoulderC0(originalShoulderC0 
+					* CFrame.new(-0.25, -0.15, -0.4) 
+					* CFrame.Angles(pitch + math.rad(35), math.rad(-25), math.rad(-15)) 
+					* breathingSway
+					* armSwingOffset)
+			else
+				setShoulderC0(originalShoulderC0 * CFrame.Angles(pitch, 0, 0) * breathingSway * armSwingOffset)
+			end
 		end
 	end)
 end
