@@ -534,12 +534,12 @@ function SurvivalUIController.CreateWristwatchUI()
 	-- 10. สร้างตัวอักษรบอกประเภทสลักใต้จอ
 	local fLabel = Instance.new("TextLabel")
 	fLabel.Name = "FoodLabel"
-	fLabel.Size = UDim2.new(0, 20, 0, 10)
+	fLabel.Size = UDim2.new(0, 20, 0, 12)
 	fLabel.Position = UDim2.new(0.2, 0, 0.74, 0)
 	fLabel.BackgroundTransparency = 1
-	fLabel.Text = "FD"
+	fLabel.Text = "🍗"
 	fLabel.TextColor3 = Color3.fromRGB(255, 130, 0)
-	fLabel.TextSize = 8
+	fLabel.TextSize = 11
 	fLabel.Font = Enum.Font.GothamBold
 	fLabel.TextXAlignment = Enum.TextXAlignment.Center
 	fLabel.Parent = screen
@@ -547,12 +547,12 @@ function SurvivalUIController.CreateWristwatchUI()
 	
 	local vLabel = Instance.new("TextLabel")
 	vLabel.Name = "VirusLabel"
-	vLabel.Size = UDim2.new(0, 20, 0, 10)
+	vLabel.Size = UDim2.new(0, 20, 0, 12)
 	vLabel.Position = UDim2.new(0.6, 0, 0.74, 0)
 	vLabel.BackgroundTransparency = 1
-	vLabel.Text = "VX"
+	vLabel.Text = "☣️"
 	vLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-	vLabel.TextSize = 8
+	vLabel.TextSize = 11
 	vLabel.Font = Enum.Font.GothamBold
 	vLabel.TextXAlignment = Enum.TextXAlignment.Center
 	vLabel.Parent = screen
