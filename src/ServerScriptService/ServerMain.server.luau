@@ -105,6 +105,55 @@ local function createTestRoom()
 		newSpawn.Parent = folder
 	end
 	
+	-- 🧟 สปอว์น "หุ่นซอมบี้ทดสอบ" (Test Zombie Dummy) เพื่อทดสอบการฟัน/ยิงและการลดพลังชีวิต
+	local dummy = Instance.new("Model")
+	dummy.Name = "Zombie Dummy"
+	dummy.Parent = folder
+	
+	local head = Instance.new("Part")
+	head.Name = "Head"
+	head.Size = Vector3.new(2, 2, 2)
+	head.Position = Vector3.new(0, 5.5, -12) -- ห่างจากจุดเกิดของผู้เล่นไปทางหน้ากล่องไม้
+	head.Color = Color3.fromRGB(80, 110, 80) -- สีเขียวซอมบี้
+	head.Material = Enum.Material.CorrodedMetal
+	head.Parent = dummy
+	
+	local torso = Instance.new("Part")
+	torso.Name = "Torso"
+	torso.Size = Vector3.new(2, 3, 1)
+	torso.Position = Vector3.new(0, 3, -12)
+	torso.Color = Color3.fromRGB(60, 80, 60)
+	torso.Material = Enum.Material.CorrodedMetal
+	torso.Parent = dummy
+	
+	-- เชื่อม Head เข้ากับ Torso
+	local headWeld = Instance.new("WeldConstraint")
+	headWeld.Part0 = torso
+	headWeld.Part1 = head
+	headWeld.Parent = torso
+	
+	-- สปอว์น Humanoid เพื่อให้รองรับ TakeDamage และขึ้นหลอดเลือด
+	local humanoid = Instance.new("Humanoid")
+	humanoid.MaxHealth = 200
+	humanoid.Health = 200
+	humanoid.Parent = dummy
+	
+	-- ปักหลักตัวหุ่นไม่ให้ล้ม
+	torso.Anchored = true
+	head.Anchored = true
+	
+	-- ระบบคืนชีพหุ่นอัตโนมัติเมื่อตายเพื่อการทดสอบซ้ำๆ
+	humanoid.Died:Connect(function()
+		print("[ServerMain]: 🧟 หุ่นซอมบี้ทดสอบเสียชีวิต! กำลังคืนชีพใน 5 วินาที...")
+		task.wait(5)
+		if dummy and humanoid then
+			humanoid.MaxHealth = 200
+			humanoid.Health = 200
+			head.Color = Color3.fromRGB(80, 110, 80)
+			print("[ServerMain]: 🧟 คืนชีพหุ่นซอมบี้ทดสอบสำเร็จ!")
+		end
+	end)
+	
 	print("[ServerMain]: ห้องครอบสำหรับทดสอบไฟฉายสปอว์นเสร็จสิ้นที่พิกัด 0, 0, 0")
 end
 

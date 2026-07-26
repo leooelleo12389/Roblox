@@ -31,6 +31,11 @@ local watchDayLabel = nil
 local watchSystemLabel = nil
 local isWatchOpen = false
 
+-- ตัวแปรสถานะกระสุนสำหรับแสดงบนนาฬิกา
+local watchAmmoVisible = false
+local watchCurrentAmmo = 0
+local watchMaxAmmo = 0
+
 -- ตัวแปรแถบพลังงานความหิวและเปอร์เซ็นต์ติดเชื้อบนหน้าปัดนาฬิกา (เกจทรงโค้ง Left/Right)
 local leftFillStroke = nil
 local leftGradient = nil
@@ -645,7 +650,24 @@ function SurvivalUIController.CreateWristwatchUI()
 		
 		-- 🖥️ อัปเดตข้อความแจ้งเตือนระบบ (System Status Label)
 		if watchSystemLabel then
-			if infection >= 75 then
+			if watchAmmoVisible then
+				if watchCurrentAmmo <= 0 then
+					watchSystemLabel.Text = "RELOAD"
+					watchSystemLabel.TextColor3 = Color3.fromRGB(255, 50, 0)
+					
+					-- กระพริบข้อความ RELOAD
+					local flashVal = math.sin(flashTick)
+					if flashVal > 0 then
+						watchSystemLabel.TextTransparency = 0
+					else
+						watchSystemLabel.TextTransparency = 1
+					end
+				else
+					watchSystemLabel.Text = string.format("AMMO %02d/%02d", watchCurrentAmmo, watchMaxAmmo)
+					watchSystemLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
+					watchSystemLabel.TextTransparency = 0
+				end
+			elseif infection >= 75 then
 				watchSystemLabel.Text = "CRITICAL"
 				watchSystemLabel.TextColor3 = Color3.fromRGB(255, 0, 40)
 				watchSystemLabel.TextTransparency = 0
@@ -681,6 +703,13 @@ function SurvivalUIController.SetWatchVisible(visible)
 	if visible and armPart then
 		armPart.Color = getPlayerSkinColor()
 	end
+end
+
+-- ฟังก์ชันปรับเปลี่ยนข้อความแสดงจำนวนกระสุนบนนาฬิกา
+function SurvivalUIController.SetWatchAmmo(visible, current, max)
+	watchAmmoVisible = visible
+	watchCurrentAmmo = current or 0
+	watchMaxAmmo = max or 0
 end
 
 local isInitialized = false -- ป้องกันการบูตเบิ้ล
