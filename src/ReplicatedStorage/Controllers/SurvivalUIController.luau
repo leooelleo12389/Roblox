@@ -480,7 +480,7 @@ function SurvivalUIController.CreateWristwatchUI()
 	
 	local lfGradient = Instance.new("UIGradient")
 	lfGradient.Rotation = -90 -- เติมล่างขึ้นบน
-	lfGradient.Parent = leftFill
+	lfGradient.Parent = lfStroke
 	leftGradient = lfGradient
 	
 	-- 9. [เกจติดเชื้อแบบโค้งฝั่งขวา - RIGHT CURVED INFECTION BAR]
@@ -529,18 +529,18 @@ function SurvivalUIController.CreateWristwatchUI()
 	
 	local rfGradient = Instance.new("UIGradient")
 	rfGradient.Rotation = -90 -- เติมล่างขึ้นบน
-	rfGradient.Parent = rightFill
+	rfGradient.Parent = rfStroke
 	rightGradient = rfGradient
 	
 	-- 10. สร้างตัวอักษรบอกประเภทสลักใต้จอ
 	local fLabel = Instance.new("TextLabel")
 	fLabel.Name = "FoodLabel"
-	fLabel.Size = UDim2.new(0, 32, 0, 12)
-	fLabel.Position = UDim2.new(0.14, 0, 0.74, 0)
+	fLabel.Size = UDim2.new(0, 48, 0, 12)
+	fLabel.Position = UDim2.new(0.06, 0, 0.74, 0)
 	fLabel.BackgroundTransparency = 1
-	fLabel.Text = "100%"
+	fLabel.Text = "🍗 100%"
 	fLabel.TextColor3 = Color3.fromRGB(255, 130, 0)
-	fLabel.TextSize = 10
+	fLabel.TextSize = 9
 	fLabel.Font = Enum.Font.GothamBold
 	fLabel.TextXAlignment = Enum.TextXAlignment.Center
 	fLabel.Parent = screen
@@ -548,12 +548,12 @@ function SurvivalUIController.CreateWristwatchUI()
 	
 	local vLabel = Instance.new("TextLabel")
 	vLabel.Name = "VirusLabel"
-	vLabel.Size = UDim2.new(0, 32, 0, 12)
-	vLabel.Position = UDim2.new(0.55, 0, 0.74, 0)
+	vLabel.Size = UDim2.new(0, 48, 0, 12)
+	vLabel.Position = UDim2.new(0.52, 0, 0.74, 0)
 	vLabel.BackgroundTransparency = 1
-	vLabel.Text = "0%"
+	vLabel.Text = "☣️ 0%"
 	vLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-	vLabel.TextSize = 10
+	vLabel.TextSize = 9
 	vLabel.Font = Enum.Font.GothamBold
 	vLabel.TextXAlignment = Enum.TextXAlignment.Center
 	vLabel.Parent = screen
@@ -604,7 +604,7 @@ function SurvivalUIController.CreateWristwatchUI()
 		local hunger = player:GetAttribute("Hunger") or 100
 		local hungerPercent = hunger / 100
 		updateArcProgress(leftGradient, hungerPercent)
-		foodLabel.Text = math.round(hunger) .. "%"
+		foodLabel.Text = "🍗 " .. math.round(hunger) .. "%"
 		
 		if hunger <= 25 then
 			leftFillStroke.Color = Color3.fromRGB(255, 50, 0)
@@ -617,7 +617,7 @@ function SurvivalUIController.CreateWristwatchUI()
 		-- ☣️ อัปเดตระดับการติดเชื้อ (เกจโค้งขวา)
 		local infection = player:GetAttribute("Infection") or 0
 		local infectPercent = infection / 100
-		virusLabel.Text = math.round(infection) .. "%"
+		virusLabel.Text = "☣️ " .. math.round(infection) .. "%"
 		
 		if infection <= 0 then
 			updateArcProgress(rightGradient, 0)
