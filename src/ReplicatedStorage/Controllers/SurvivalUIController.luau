@@ -606,14 +606,8 @@ function SurvivalUIController.CreateWristwatchUI()
 		updateArcProgress(leftGradient, hungerPercent)
 		
 		if hunger <= 25 then
-			local flashVal = math.sin(flashTick)
-			if flashVal > 0 then
-				leftFillStroke.Color = Color3.fromRGB(255, 50, 0)
-				foodLabel.TextColor3 = Color3.fromRGB(255, 50, 0)
-			else
-				leftFillStroke.Color = Color3.fromRGB(80, 20, 10)
-				foodLabel.TextColor3 = Color3.fromRGB(120, 40, 30)
-			end
+			leftFillStroke.Color = Color3.fromRGB(255, 50, 0)
+			foodLabel.TextColor3 = Color3.fromRGB(255, 50, 0)
 		else
 			leftFillStroke.Color = Color3.fromRGB(255, 130, 0)
 			foodLabel.TextColor3 = Color3.fromRGB(255, 130, 0)
@@ -632,14 +626,8 @@ function SurvivalUIController.CreateWristwatchUI()
 			virusLabel.TextColor3 = Color3.fromRGB(240, 180, 20)
 			updateArcProgress(rightGradient, infectPercent)
 		else
-			local vFlash = math.sin(flashTick)
-			if vFlash > 0 then
-				rightFillStroke.Color = Color3.fromRGB(255, 0, 40)
-				virusLabel.TextColor3 = Color3.fromRGB(255, 0, 40)
-			else
-				rightFillStroke.Color = Color3.fromRGB(100, 10, 20)
-				virusLabel.TextColor3 = Color3.fromRGB(150, 20, 30)
-			end
+			rightFillStroke.Color = Color3.fromRGB(255, 0, 40)
+			virusLabel.TextColor3 = Color3.fromRGB(255, 0, 40)
 			updateArcProgress(rightGradient, infectPercent)
 		end
 		
