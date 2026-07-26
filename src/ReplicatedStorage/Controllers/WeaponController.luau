@@ -145,56 +145,100 @@ local function playCustomAttackAnimation(humanoid, animId)
 	end
 end
 
--- อนิเมชั่นปล่อยหมัดแบบ Procedural (ส่ายไหล่ขวา/ซ้ายตามจังหวะ)
+-- อนิเมชั่นปล่อยหมัดแบบ Procedural ระดับพรีเมียม (มีแรงส่งน้ำหนัก หมุนบิดกำปั้น การ์ดป้องกันอีกมือ และกล้องสั่นไหว)
 local function playProceduralSlash(comboIndex)
 	if not currentTool or currentTool.Name ~= "Fists" then return end
 	
 	task.spawn(function()
-		local steps = 5
-		local duration = 0.06 -- ปล่อยหมัดรวดเร็วมาก
-		local recoverDuration = 0.12 -- ดึงหมัดกลับช้าลงเล็กน้อย
+		local steps = 6
+		
+		-- เพิ่มแรงสั่นสะเทือนกล้องเล็กน้อยเพื่อความหนักแน่น (Camera recoil)
+		task.spawn(function()
+			for i = 1, 4 do
+				if not currentTool or currentTool.Name ~= "Fists" then break end
+				local shake = Vector3.new(
+					(math.random() - 0.5) * 0.02,
+					(math.random() - 0.5) * 0.02,
+					(math.random() - 0.5) * 0.02
+				)
+				camera.CFrame = camera.CFrame * CFrame.new(shake)
+				task.wait(0.015)
+			end
+		end)
 		
 		if comboIndex == 1 then
-			-- 1. หมัดขวาตรง (Right Jab/Punch)
+			-- 🥊 1. หมัดขวาตรง (Right Jab)
+			-- ง้างหมัดถอยหลังนิดหน่อย (Anticipation)
+			for i = 1, 2 do
+				armSwingOffset = CFrame.new(0.05, 0, 0.15) * CFrame.Angles(0, math.rad(-10), 0)
+				leftArmSwingOffset = CFrame.new(0.1, 0.05, -0.1) -- หมัดซ้ายขยับมาบังหน้าเพื่อการ์ด
+				task.wait(0.02)
+			end
+			-- พุ่งหมัดชกออกไปอย่างรวดเร็วพร้อมบิดข้อมือ (Punch snap forward with twist)
 			for i = 1, steps do
 				local t = i / steps
-				armSwingOffset = CFrame.new(0.15 * t, -0.05 * t, -0.9 * t) 
-					* CFrame.Angles(math.rad(25 * t), 0, math.rad(-15 * t))
-				task.wait(duration / steps)
+				armSwingOffset = CFrame.new(-0.1 * t, -0.05 * t, 0.15 - 1.35 * t) 
+					* CFrame.Angles(math.rad(15 * t), math.rad(-15 * t), math.rad(-75 * t))
+				leftArmSwingOffset = CFrame.new(0.1 * t, 0.05 * t, -0.1 * t)
+				task.wait(0.04 / steps)
 			end
+			-- ดึงหมัดกลับมาตั้งการ์ดปกติแบบหน่วงเวลา (Recover ease-out)
 			for i = 1, steps do
 				local t = 1 - (i / steps)
-				armSwingOffset = CFrame.new(0.15 * t, -0.05 * t, -0.9 * t) 
-					* CFrame.Angles(math.rad(25 * t), 0, math.rad(-15 * t))
-				task.wait(recoverDuration / steps)
+				armSwingOffset = CFrame.new(-0.1 * t, -0.05 * t, 0.15 - 1.35 * t) 
+					* CFrame.Angles(math.rad(15 * t), math.rad(-15 * t), math.rad(-75 * t))
+				leftArmSwingOffset = CFrame.new(0.1 * t, 0.05 * t, -0.1 * t)
+				task.wait(0.14 / steps)
 			end
+			
 		elseif comboIndex == 2 then
-			-- 2. หมัดซ้ายตรง (Left Jab/Punch)
+			-- 🥊 2. หมัดซ้ายตรง (Left Jab)
+			-- ง้างหมัดถอยหลังนิดหน่อย (Anticipation)
+			for i = 1, 2 do
+				leftArmSwingOffset = CFrame.new(-0.05, 0, 0.15) * CFrame.Angles(0, math.rad(10), 0)
+				armSwingOffset = CFrame.new(-0.1, 0.05, -0.1) -- หมัดขวาขยับมาการ์ดบังหน้า
+				task.wait(0.02)
+			end
+			-- พุ่งชกซ้ายบิดข้อมือ
 			for i = 1, steps do
 				local t = i / steps
-				leftArmSwingOffset = CFrame.new(-0.15 * t, -0.05 * t, -0.9 * t) 
-					* CFrame.Angles(math.rad(25 * t), 0, math.rad(15 * t))
-				task.wait(duration / steps)
+				leftArmSwingOffset = CFrame.new(0.1 * t, -0.05 * t, 0.15 - 1.35 * t) 
+					* CFrame.Angles(math.rad(15 * t), math.rad(15 * t), math.rad(75 * t))
+				armSwingOffset = CFrame.new(-0.1 * t, 0.05 * t, -0.1 * t)
+				task.wait(0.04 / steps)
 			end
+			-- ดึงกลับ
 			for i = 1, steps do
 				local t = 1 - (i / steps)
-				leftArmSwingOffset = CFrame.new(-0.15 * t, -0.05 * t, -0.9 * t) 
-					* CFrame.Angles(math.rad(25 * t), 0, math.rad(15 * t))
-				task.wait(recoverDuration / steps)
+				leftArmSwingOffset = CFrame.new(0.1 * t, -0.05 * t, 0.15 - 1.35 * t) 
+					* CFrame.Angles(math.rad(15 * t), math.rad(15 * t), math.rad(75 * t))
+				armSwingOffset = CFrame.new(-0.1 * t, 0.05 * t, -0.1 * t)
+				task.wait(0.14 / steps)
 			end
+			
 		elseif comboIndex == 3 then
-			-- 3. อัปเปอร์คัทขวา (Right Uppercut)
+			-- 🥊 3. อัปเปอร์คัทขวาเสยคาง (Right Uppercut)
+			-- ง้างลงต่ำเพื่อเตรียมเสย (Drop fist down for power)
+			for i = 1, 3 do
+				armSwingOffset = CFrame.new(-0.1, -0.3, 0.1) * CFrame.Angles(math.rad(-20), 0, 0)
+				leftArmSwingOffset = CFrame.new(0.15, 0.1, -0.15) -- ยกการ์ดซ้ายสูงป้องกันใบหน้า
+				task.wait(0.02)
+			end
+			-- เสยเสร็จสิ้นอย่างรุนแรง (Uppercut punch up)
 			for i = 1, steps do
 				local t = i / steps
-				armSwingOffset = CFrame.new(-0.35 * t, -0.3 + 0.6 * t, -0.6 * t) 
-					* CFrame.Angles(math.rad(45 * t), math.rad(-25 * t), math.rad(-45 * t))
-				task.wait(duration / steps)
+				armSwingOffset = CFrame.new(-0.1 - 0.15 * t, -0.3 + 0.7 * t, 0.1 - 0.7 * t) 
+					* CFrame.Angles(math.rad(65 * t), math.rad(-35 * t), math.rad(-60 * t))
+				leftArmSwingOffset = CFrame.new(0.15 * t, 0.1 * t, -0.15 * t)
+				task.wait(0.05 / steps)
 			end
+			-- ค่อยๆ ดึงกลับลงมาท่าการ์ดเดิม
 			for i = 1, steps do
 				local t = 1 - (i / steps)
-				armSwingOffset = CFrame.new(-0.35 * t, -0.3 + 0.6 * t, -0.6 * t) 
-					* CFrame.Angles(math.rad(45 * t), math.rad(-25 * t), math.rad(-45 * t))
-				task.wait(recoverDuration / steps)
+				armSwingOffset = CFrame.new(-0.1 - 0.15 * t, -0.3 + 0.7 * t, 0.1 - 0.7 * t) 
+					* CFrame.Angles(math.rad(65 * t), math.rad(-35 * t), math.rad(-60 * t))
+				leftArmSwingOffset = CFrame.new(0.15 * t, 0.1 * t, -0.15 * t)
+				task.wait(0.16 / steps)
 			end
 		end
 		
