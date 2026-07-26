@@ -56,6 +56,68 @@ local function playSoundLocal(soundId, volume, playbackSpeed)
 	Debris:AddItem(sound, 3)
 end
 
+-- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่ายกริปมีดบนหน้าจอ)
+local function playProceduralSlash()
+	if not currentTool or currentTool.Name ~= "Knife" then return end
+	
+	-- อ้างอิงจุดจับเริ่มแรกของมีด
+	local originalGrip = CFrame.new(0, -0.2, 0) * CFrame.Angles(0, math.rad(-90), 0)
+	
+	task.spawn(function()
+		local steps = 6
+		local duration = 0.1 -- เวลาในการส่ายฟันไป
+		
+		-- 1. แกว่งเฉือนฟันไปข้างหน้าและเฉียงลงด้านซ้าย
+		for i = 1, steps do
+			local t = i / steps
+			currentTool.Grip = originalGrip 
+				* CFrame.new(0.4 * t, -0.2 * t, -0.6 * t) 
+				* CFrame.Angles(math.rad(-35 * t), math.rad(30 * t), math.rad(45 * t))
+			task.wait(duration / steps)
+		end
+		
+		-- 2. วนมีดกลับมาตำแหน่งตั้งท่าเหมือนเดิม
+		for i = 1, steps do
+			local t = 1 - (i / steps)
+			currentTool.Grip = originalGrip 
+				* CFrame.new(0.4 * t, -0.2 * t, -0.6 * t) 
+				* CFrame.Angles(math.rad(-35 * t), math.rad(30 * t), math.rad(45 * t))
+			task.wait(duration / steps)
+		end
+		
+		currentTool.Grip = originalGrip
+	end)
+end
+
+-- อนิเมชั่นปืนพกถอยดีดสะท้อนกลับ (Procedural Recoil)
+local function playProceduralRecoil()
+	if not currentTool or currentTool.Name ~= "Pistol" then return end
+	
+	local originalGrip = CFrame.new(0, -0.4, 0.3) * CFrame.Angles(math.rad(-15), 0, 0)
+	
+	task.spawn(function()
+		local stepsUp = 3
+		for i = 1, stepsUp do
+			local t = i / stepsUp
+			currentTool.Grip = originalGrip 
+				* CFrame.new(0, 0, 0.35 * t) 
+				* CFrame.Angles(math.rad(18 * t), 0, 0)
+			task.wait(0.03)
+		end
+		
+		local stepsDown = 6
+		for i = 1, stepsDown do
+			local t = 1 - (i / stepsDown)
+			currentTool.Grip = originalGrip 
+				* CFrame.new(0, 0, 0.35 * t) 
+				* CFrame.Angles(math.rad(18 * t), 0, 0)
+			task.wait(0.025)
+		end
+		
+		currentTool.Grip = originalGrip
+	end)
+end
+
 -- ดักจับจังหวะการกดเมาส์ซ้ายหรือเริ่มสั่งโจมตี (Attack logic)
 local function performAttack()
 	if not currentTool or not currentWeaponData then return end
@@ -70,6 +132,14 @@ local function performAttack()
 		-- 🗡️ [โจมตีระยะประชิด]
 		-- เล่นเสียงเหวี่ยงอาวุธ (เร่งสปีดเสียงกระโดดทำเสียง Whoosh สั้น)
 		playSoundLocal(currentWeaponData.SwingSound, 0.45, 2.5)
+		
+		-- เล่นอนิเมชั่นดาบแกว่งและสั่งแขนตัวละครแกว่งจริง
+		playProceduralSlash()
+		local animate = char:FindFirstChild("Animate")
+		local toolanim = animate and animate:FindFirstChild("toolanim")
+		if toolanim then
+			toolanim.Value = "Slash"
+		end
 		
 		-- ทำการ Raycast จากกึ่งกลางหน้าจอกล้อง
 		local ray = camera:ViewportPointToRay(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
@@ -107,6 +177,14 @@ local function performAttack()
 		
 		-- เล่นเสียงปืนยิง (ปรับสปีดเร่งระดับเสียงของเสียงระเบิดโลคอลเป็นปืนยิงแหลมสะใจ)
 		playSoundLocal(currentWeaponData.FireSound, 0.65, 1.8)
+		
+		-- เล่นอนิเมชั่นแรงดีดปืนและสั่งส่ายแขนเล็กน้อย
+		playProceduralRecoil()
+		local animate = char:FindFirstChild("Animate")
+		local toolanim = animate and animate:FindFirstChild("toolanim")
+		if toolanim then
+			toolanim.Value = "Slash"
+		end
 		
 		-- ทำการหาตำแหน่งปากกระบอกปืน (หรือใช้ตำแหน่งกริปปืนแทน)
 		local muzzlePart = currentTool:FindFirstChild("Muzzle") or currentTool:FindFirstChild("Handle")
