@@ -10,7 +10,7 @@ local WeaponRemotes = require(ReplicatedStorage:WaitForChild("Network"):WaitForC
 local lastPlayerAttack = {} -- เก็บเวลาสกัดสแปมแฮก { [player] = tick() }
 
 -- ฟังก์ชันสร้างเสียงสปอว์นในพิกัด 3 มิติ (3D Sound Replication)
-local function play3DSound(soundId, position, volume)
+local function play3DSound(soundId, position, volume, playbackSpeed)
 	local part = Instance.new("Part")
 	part.Name = "3DSoundSource"
 	part.Size = Vector3.new(0.1, 0.1, 0.1)
@@ -25,12 +25,13 @@ local function play3DSound(soundId, position, volume)
 	local sound = Instance.new("Sound")
 	sound.SoundId = soundId
 	sound.Volume = volume or 0.5
+	sound.PlaybackSpeed = playbackSpeed or 1.0
 	sound.RollOffMaxDistance = 150
 	sound.RollOffMinDistance = 10
 	sound.Parent = part
 	sound:Play()
 	
-	Debris:AddItem(part, sound.TimeLength > 0 and sound.TimeLength + 1 or 3)
+	Debris:AddItem(part, sound.TimeLength > 0 and (sound.TimeLength / sound.PlaybackSpeed) + 1 or 3)
 end
 
 -- ฟังก์ชันสปอว์นเอฟเฟกต์อนุภาคเมื่อโจมตีโดนเป้าหมาย (Particle Splash Effect)
@@ -193,8 +194,8 @@ function CombatService.Init()
 		-- 5. จำลองเสียงพาดฟันโดนเป้าหมายและสาดอนุภาคเอฟเฟกต์
 		if attackType == "Melee" then
 			if isOrganicHit then
-				-- เสียงโจมตีสิ่งมีชีวิต
-				play3DSound(weaponData.HitSound, hitPos, 0.5)
+				-- เสียงโจมตีสิ่งมีชีวิต (เร่งระดับความสูงของเสียงน้ำกระเซ็นโลคอลให้กลายเป็นเสียงมีดฟันเข้าเนื้อ)
+				play3DSound(weaponData.HitSound, hitPos, 0.5, 1.6)
 				spawnHitParticle(hitPos, true)
 			else
 				-- เสียงมีดฟันโดนกำแพงไม้/ปูน (ใช้เสียงตุ๊บแบบ local)
@@ -203,8 +204,8 @@ function CombatService.Init()
 			end
 		elseif attackType == "Ranged" then
 			if isOrganicHit then
-				-- เสียงยิงเข้าเนื้อเยื่อ (ใช้ไฟล์เสียงปะทะเนื้อแบบ local)
-				play3DSound("rbxasset://sounds/splat.wav", hitPos, 0.5)
+				-- เสียงยิงเข้าเนื้อเยื่อ (ใช้เสียงสปาชเนื้อเปียกโลคอลแบบเร่งความเร็ว)
+				play3DSound("rbxasset://sounds/impact_water.mp3", hitPos, 0.55, 1.6)
 				spawnHitParticle(hitPos, true)
 			else
 				-- เสียงกระสุนยิงปะทะกำแพงไม้/ปูน (ใช้เสียงตุ๊บแบบ local)
