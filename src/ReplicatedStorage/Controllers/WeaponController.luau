@@ -5,9 +5,15 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
+
+-- ตัวแปรควบคุมการขยับแขนขวาในมุมมองบุคคลที่หนึ่ง
+local rightShoulder = nil
+local originalShoulderC0 = nil
+local armSwingOffset = CFrame.new()
 
 local WeaponConfig = require(ReplicatedStorage:WaitForChild("Configs"):WaitForChild("WeaponConfig"))
 local WeaponRemotes = require(ReplicatedStorage:WaitForChild("Network"):WaitForChild("WeaponRemotes"))
@@ -58,7 +64,7 @@ local function playSoundLocal(soundId, volume, playbackSpeed)
 	Debris:AddItem(sound, 3)
 end
 
--- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่าย RightGrip Joint ตามจังหวะคอมโบ)
+-- อนิเมชั่นแกว่งมีดฟันแบบ Procedural (ส่าย RightGrip Joint ตามจังหวะคอมโบ และขยับข้อต่อไหล่ขวา)
 local function playProceduralSlash(comboIndex)
 	if not currentTool or currentTool.Name ~= "Knife" then return end
 	
@@ -80,6 +86,10 @@ local function playProceduralSlash(comboIndex)
 				rightGrip.C1 = originalC1 
 					* CFrame.new(-0.35 + 0.7 * t, -0.25 + 0.5 * t, 0.45 * t) 
 					* CFrame.Angles(math.rad(30 - 65 * t), math.rad(-15 + 30 * t), math.rad(-45 + 90 * t))
+				
+				-- ขยับไหล่ให้วาดแขนตามแนวมีดเฉลียงขึ้นบน
+				armSwingOffset = CFrame.new(-0.25 * t, 0.3 * t, -0.45 * t) 
+					* CFrame.Angles(math.rad(35 * t), math.rad(15 * t), math.rad(-25 * t))
 				task.wait(duration / steps)
 			end
 			for i = 1, steps do
@@ -88,6 +98,9 @@ local function playProceduralSlash(comboIndex)
 				rightGrip.C1 = originalC1 
 					* CFrame.new(-0.35 + 0.7 * t, -0.25 + 0.5 * t, 0.45 * t) 
 					* CFrame.Angles(math.rad(30 - 65 * t), math.rad(-15 + 30 * t), math.rad(-45 + 90 * t))
+				
+				armSwingOffset = CFrame.new(-0.25 * t, 0.3 * t, -0.45 * t) 
+					* CFrame.Angles(math.rad(35 * t), math.rad(15 * t), math.rad(-25 * t))
 				task.wait(recoverDuration / steps)
 			end
 		elseif comboIndex == 2 then
@@ -98,6 +111,10 @@ local function playProceduralSlash(comboIndex)
 				rightGrip.C1 = originalC1 
 					* CFrame.new(0.35 - 0.7 * t, 0.25 - 0.5 * t, 0.45 * t) 
 					* CFrame.Angles(math.rad(-30 + 65 * t), math.rad(15 - 30 * t), math.rad(45 - 90 * t))
+				
+				-- ขยับไหล่ให้ท่อนแขนเฉือนกวาดกลับทาง
+				armSwingOffset = CFrame.new(0.1 - 0.35 * t, 0.2 - 0.45 * t, -0.4 * t) 
+					* CFrame.Angles(math.rad(30 - 50 * t), math.rad(-15 * t), math.rad(25 * t))
 				task.wait(duration / steps)
 			end
 			for i = 1, steps do
@@ -106,6 +123,9 @@ local function playProceduralSlash(comboIndex)
 				rightGrip.C1 = originalC1 
 					* CFrame.new(0.35 - 0.7 * t, 0.25 - 0.5 * t, 0.45 * t) 
 					* CFrame.Angles(math.rad(-30 + 65 * t), math.rad(15 - 30 * t), math.rad(45 - 90 * t))
+				
+				armSwingOffset = CFrame.new(0.1 - 0.35 * t, 0.2 - 0.45 * t, -0.4 * t) 
+					* CFrame.Angles(math.rad(30 - 50 * t), math.rad(-15 * t), math.rad(25 * t))
 				task.wait(recoverDuration / steps)
 			end
 		elseif comboIndex == 3 then
@@ -116,6 +136,10 @@ local function playProceduralSlash(comboIndex)
 				rightGrip.C1 = originalC1 
 					* CFrame.new(0, 0, 0.85 * t) 
 					* CFrame.Angles(math.rad(15 * t), 0, 0)
+				
+				-- ขยับไหล่ขวายื่นแขนแทงลึกไปข้างหน้า
+				armSwingOffset = CFrame.new(0, -0.15 * t, -0.7 * t) 
+					* CFrame.Angles(math.rad(45 * t), 0, 0)
 				task.wait(duration / steps)
 			end
 			for i = 1, steps do
@@ -124,17 +148,21 @@ local function playProceduralSlash(comboIndex)
 				rightGrip.C1 = originalC1 
 					* CFrame.new(0, 0, 0.85 * t) 
 					* CFrame.Angles(math.rad(15 * t), 0, 0)
+				
+				armSwingOffset = CFrame.new(0, -0.15 * t, -0.7 * t) 
+					* CFrame.Angles(math.rad(45 * t), 0, 0)
 				task.wait(recoverDuration / steps)
 			end
 		end
 		
+		armSwingOffset = CFrame.new()
 		if rightGrip and rightGrip.Parent then
 			rightGrip.C1 = originalC1
 		end
 	end)
 end
 
--- อนิเมชั่นปืนพกถอยดีดสะท้อนกลับแบบ Procedural (ส่าย RightGrip Joint)
+-- อนิเมชั่นปืนพกถอยดีดสะท้อนกลับแบบ Procedural (ส่าย RightGrip Joint และขยับข้อไหล่ขวา)
 local function playProceduralRecoil()
 	if not currentTool or currentTool.Name ~= "Pistol" then return end
 	
@@ -152,6 +180,10 @@ local function playProceduralRecoil()
 			rightGrip.C1 = originalC1 
 				* CFrame.new(0, 0.15 * t, 0.3 * t) 
 				* CFrame.Angles(math.rad(-18 * t), 0, 0)
+			
+			-- แขนสะบัดเตะขึ้นสะท้อนกลับ
+			armSwingOffset = CFrame.new(0, 0.08 * t, 0.15 * t) 
+				* CFrame.Angles(math.rad(8 * t), 0, 0)
 			task.wait(0.03)
 		end
 		
@@ -163,9 +195,13 @@ local function playProceduralRecoil()
 			rightGrip.C1 = originalC1 
 				* CFrame.new(0, 0.15 * t, 0.3 * t) 
 				* CFrame.Angles(math.rad(-18 * t), 0, 0)
+			
+			armSwingOffset = CFrame.new(0, 0.08 * t, 0.15 * t) 
+				* CFrame.Angles(math.rad(8 * t), 0, 0)
 			task.wait(0.025)
 		end
 		
+		armSwingOffset = CFrame.new()
 		if rightGrip and rightGrip.Parent then
 			rightGrip.C1 = originalC1
 		end
@@ -327,13 +363,22 @@ end
 
 -- ฟังก์ชันติดตั้งตัวดักจับเหตุการณ์ของตัวละคร (Equip / Unequip detection)
 local function setupCharacterEvents(char)
+	-- ดึงข้อต่อหัวไหล่ขวาเมื่อตัวละครโหลด
+	rightShoulder = char:WaitForChild("RightUpperArm", 5) and char.RightUpperArm:FindFirstChild("RightShoulder")
+		or char:WaitForChild("Torso", 5) and char.Torso:FindFirstChild("Right Shoulder")
+	
+	if rightShoulder then
+		originalShoulderC0 = rightShoulder.C0
+	end
+
 	-- ตรวจสอบเมื่อมีการหยิบอาวุธขึ้นมาถือ (ChildAdded to Character)
 	char.ChildAdded:Connect(function(child)
 		if child:IsA("Tool") then
 			currentTool = child
 			local weaponData = WeaponConfig.Weapons[child.Name]
 			
-			-- รีเซ็ตค่าคอมโบเมื่อถืออาวุธชิ้นใหม่
+			-- รีเซ็ตอนิเมชั่นหัวไหล่และค่าคอมโบใหม่
+			armSwingOffset = CFrame.new()
 			currentComboIndex = 1
 			lastComboTime = 0
 			
@@ -359,7 +404,11 @@ local function setupCharacterEvents(char)
 			currentWeaponData = nil
 			isReloading = false
 			
-			-- รีเซ็ตค่าคอมโบเมื่อเก็บอาวุธ
+			-- คืนค่า C0 หัวไหล่กลับสู่สภาพเริ่มต้น และล้างค่าคอมโบ
+			armSwingOffset = CFrame.new()
+			if rightShoulder and originalShoulderC0 then
+				rightShoulder.C0 = originalShoulderC0
+			end
 			currentComboIndex = 1
 			lastComboTime = 0
 			
@@ -387,6 +436,35 @@ function WeaponController.Init()
 		elseif input.KeyCode == Enum.KeyCode.R then
 			performReload()
 		end
+	end)
+
+	-- เชื่อมเหตุการณ์ RenderStepped เพื่อควบคุมการก้มเงยและแกว่งของข้อไหล่ขวาตามมุมกล้องและคอมโบ
+	RunService.RenderStepped:Connect(function()
+		if not currentTool or not rightShoulder or not originalShoulderC0 then
+			-- คืนค่าตำแหน่งไหล่เดิมเมื่อไม่หยิบอาวุธขึ้นมาใช้
+			if rightShoulder and originalShoulderC0 and rightShoulder.C0 ~= originalShoulderC0 then
+				rightShoulder.C0 = originalShoulderC0
+			end
+			return
+		end
+		
+		-- ตรวจจับว่ากระดูกหัวไหล่ยังมีชีวิตอยู่ (ป้องกันข้อผิดพลาดการเกิดใหม่)
+		if not rightShoulder.Parent then
+			rightShoulder = player.Character and (player.Character:FindFirstChild("RightShoulder", true) or player.Character:FindFirstChild("Right Shoulder", true))
+			if rightShoulder then
+				originalShoulderC0 = rightShoulder.C0
+			end
+			return
+		end
+		
+		-- คำนวณมุมก้มเงยของกล้อง (Camera Y Pitch)
+		local cameraDirection = camera.CFrame.LookVector
+		local pitch = math.asin(cameraDirection.Y)
+		
+		-- หมุนข้อต่อไหล่ขวาให้ก้มเงยตามกล้อง + คอยบวก CFrame อนิเมชั่นแกว่ง/เตะถอยของคอมโบ (armSwingOffset)
+		rightShoulder.C0 = originalShoulderC0 
+			* CFrame.Angles(pitch, 0, 0) 
+			* armSwingOffset
 	end)
 end
 
