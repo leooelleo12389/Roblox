@@ -7,7 +7,7 @@ local WeaponConfig = {
 			Range = 8,
 			Cooldown = 0.5,
 			SwingSound = "rbxasset://sounds/action_jump.mp3", -- Local jump whoosh (PlaybackSpeed will be tuned locally)
-			HitSound = "rbxasset://sounds/ouch.ogg",         -- Local ouch damage sound (guaranteed to load)
+			HitSound = "rbxasset://sounds/impact_water.mp3",    -- Local water splash sound (guaranteed to load)
 		},
 		Pistol = {
 			Name = "Pistol",
