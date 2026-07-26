@@ -6,8 +6,8 @@ local WeaponConfig = {
 			Damage = 35,
 			Range = 8,
 			Cooldown = 0.5,
-			SwingSound = "rbxasset://sounds/swish.wav", -- standard built-in sound
-			HitSound = "rbxassetid://566593606",        -- stab sound ID
+			SwingSound = "rbxassetid://9117849182", -- Roblox official whoosh sound
+			HitSound = "rbxassetid://9114220803",    -- Roblox official flesh impact sound
 		},
 		Pistol = {
 			Name = "Pistol",
@@ -15,8 +15,8 @@ local WeaponConfig = {
 			Damage = 45,
 			Range = 150,
 			Cooldown = 0.35,
-			FireSound = "rbxassetid://333465389",       -- standard pistol fire sound ID
-			ReloadSound = "rbxassetid://131072986",     -- pistol reload sound ID
+			FireSound = "rbxassetid://9114223190",   -- Roblox official gun shot sound
+			ReloadSound = "rbxassetid://9114227877", -- Roblox official weapon reload sound
 			MaxAmmo = 8,
 			ReloadTime = 1.6
 		}
