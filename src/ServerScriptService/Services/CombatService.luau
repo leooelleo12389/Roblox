@@ -203,12 +203,12 @@ function CombatService.Init()
 			end
 		elseif attackType == "Ranged" then
 			if isOrganicHit then
-				-- เสียงยิงเข้าเนื้อเยื่อ
-				play3DSound("rbxassetid://9114220803", hitPos, 0.5)
+				-- เสียงยิงเข้าเนื้อเยื่อ (ใช้เสียงปะทะคลาสสิก)
+				play3DSound("rbxassetid://12222222", hitPos, 0.5)
 				spawnHitParticle(hitPos, true)
 			else
-				-- เสียงกระสุนยิงปะทะกำแพงไม้/ปูน
-				play3DSound("rbxassetid://9114229151", hitPos, 0.4)
+				-- เสียงกระสุนยิงปะทะกำแพงไม้/ปูน (ใช้ไฟล์เสียงเป้าปักหัวลูกธนูแบบ local)
+				play3DSound("rbxasset://sounds/arrowhit.wav", hitPos, 0.45)
 				spawnHitParticle(hitPos, false)
 			end
 		end

@@ -36,14 +36,14 @@ local AMBIENT_PRESETS = {
 -- เสียงบรรยากาศ (Ambient Audio)
 local dayAmbience = Instance.new("Sound")
 dayAmbience.Name = "DayAmbience"
-dayAmbience.SoundId = "rbxassetid://9059530462" -- เสียงป่ากลางวัน
+dayAmbience.SoundId = "rbxassetid://9070894784" -- เสียงป่ากลางวัน (คีย์สาธารณะ)
 dayAmbience.Volume = 0
 dayAmbience.Looped = true
 dayAmbience.Parent = SoundService
 
 local nightAmbience = Instance.new("Sound")
 nightAmbience.Name = "NightAmbience"
-nightAmbience.SoundId = "rbxassetid://1843110200" -- เสียงลมหวีดหวิวกลางคืน
+nightAmbience.SoundId = "rbxassetid://5799870105" -- เสียงลมหวีดหวิวกลางคืน (คีย์สาธารณะ)
 nightAmbience.Volume = 0
 nightAmbience.Looped = true
 nightAmbience.Parent = SoundService
