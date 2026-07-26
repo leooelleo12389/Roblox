@@ -1,0 +1,3 @@
+local BossService = {}
+
+return BossService

@@ -1,0 +1,3 @@
+local HardcoreDeathService = {}
+
+return HardcoreDeathService

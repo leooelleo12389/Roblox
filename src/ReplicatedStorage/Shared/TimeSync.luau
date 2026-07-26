@@ -1,0 +1,3 @@
+local TimeSync = {}
+
+return TimeSync

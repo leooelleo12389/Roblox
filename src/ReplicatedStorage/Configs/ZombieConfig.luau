@@ -1,0 +1,3 @@
+local ZombieConfig = {}
+
+return ZombieConfig

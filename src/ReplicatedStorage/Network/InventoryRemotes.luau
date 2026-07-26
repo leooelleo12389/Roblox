@@ -1,0 +1,3 @@
+local InventoryRemotes = {}
+
+return InventoryRemotes

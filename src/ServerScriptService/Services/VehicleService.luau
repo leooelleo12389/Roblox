@@ -1,0 +1,3 @@
+local VehicleService = {}
+
+return VehicleService

@@ -1,0 +1,3 @@
+local LootService = {}
+
+return LootService

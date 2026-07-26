@@ -1,0 +1,3 @@
+local InteractionController = {}
+
+return InteractionController

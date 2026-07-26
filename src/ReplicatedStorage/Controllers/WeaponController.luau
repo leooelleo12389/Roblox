@@ -1,0 +1,3 @@
+local WeaponController = {}
+
+return WeaponController

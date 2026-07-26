@@ -1,0 +1,3 @@
+local LootTables = {}
+
+return LootTables

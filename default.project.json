@@ -1,0 +1,90 @@
+{
+  "name": "ZombieIslandGame",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Configs": {
+        "$path": "src/ReplicatedStorage/Configs"
+      },
+      "Controllers": {
+        "$path": "src/ReplicatedStorage/Controllers"
+      },
+      "Network": {
+        "$path": "src/ReplicatedStorage/Network"
+      },
+      "Shared": {
+        "$path": "src/ReplicatedStorage/Shared"
+      },
+      "UI": {
+        "$path": "src/ReplicatedStorage/UI"
+      }
+    },
+
+    "ServerScriptService": {
+      "ServerMain": {
+        "$path": "src/ServerScriptService/ServerMain.server.luau"
+      },
+      "Services": {
+        "$path": "src/ServerScriptService/Services"
+      },
+      "Components": {
+        "$path": "src/ServerScriptService/Components"
+      }
+    },
+
+    "ServerStorage": {
+      "ZombieModels": {
+        "$path": "src/ServerStorage/ZombieModels"
+      },
+      "ItemModels": {
+        "$path": "src/ServerStorage/ItemModels"
+      },
+      "VehicleModels": {
+        "$path": "src/ServerStorage/VehicleModels"
+      }
+    },
+
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "ClientMain": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/ClientMain.client.luau"
+        }
+      },
+      "StarterCharacterScripts": {
+        "FirstPersonEnforcer": {
+          "$path": "src/StarterPlayer/StarterCharacterScripts/FirstPersonEnforcer.client.luau"
+        },
+        "FootstepAudio": {
+          "$path": "src/StarterPlayer/StarterCharacterScripts/FootstepAudio.client.luau"
+        },
+        "Sound": {
+          "$path": "src/StarterPlayer/StarterCharacterScripts/Sound.client.luau"
+        }
+      }
+    },
+
+    "Workspace": {
+      "SpawnNodes": {
+        "$path": "src/Workspace/SpawnNodes"
+      },
+      "DynamicObjects": {
+        "$path": "src/Workspace/DynamicObjects"
+      }
+    },
+    
+    "Lighting": {
+      "$properties": {
+        "Ambient": [
+          0,
+          0,
+          0
+        ],
+        "Brightness": 2,
+        "GlobalShadows": true,
+        "Outlines": false,
+        "Technology": "ShadowMap"
+      }
+    }
+  }
+}

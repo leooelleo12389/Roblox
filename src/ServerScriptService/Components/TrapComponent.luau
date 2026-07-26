@@ -1,0 +1,3 @@
+local TrapComponent = {}
+
+return TrapComponent

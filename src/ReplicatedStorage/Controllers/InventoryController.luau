@@ -1,0 +1,3 @@
+local InventoryController = {}
+
+return InventoryController

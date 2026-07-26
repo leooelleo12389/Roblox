@@ -1,0 +1,3 @@
+local InteractionRemotes = {}
+
+return InteractionRemotes

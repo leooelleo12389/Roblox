@@ -1,0 +1,3 @@
+local WeaponRemotes = {}
+
+return WeaponRemotes

@@ -1,0 +1,3 @@
+local WeaponConfig = {}
+
+return WeaponConfig
